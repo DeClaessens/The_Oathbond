@@ -1,17 +1,13 @@
 class_name AbilityComponent
 extends Node
 
-## Attach to any character (player or enemy — identical code). Owns 4 equipped
-## slots, ticks cooldowns, resolves the caster context, fires effects. Signals
-## travel UP to whoever owns the character; this node never reaches into UI/audio.
-
 signal skill_activated(index: int, skill: Skill)
 signal skill_failed(index: int, reason: StringName)
 signal cooldown_changed(index: int, remaining: float, total: float)
 
 const SLOT_COUNT := 4
 
-var caster: Node                    ## set by the owner character in _ready
+var caster: Node
 var slots: Array[AbilitySlot] = []
 
 func _ready() -> void:
@@ -33,9 +29,7 @@ func _process(delta: float) -> void:
             slot.tick(delta)
             cooldown_changed.emit(i, slot.cooldown_remaining, slot.skill.cooldown)
 
-## Self-targeted or explicit-target skills. `targets` is the resolved array the
-## CALLER wants affected (invariant: effects never resolve their own targets).
-func try_activate(index: int, targets: Array[Node], ctx: SkillContext = null) -> void:
+func activate(index: int, targets: Array[Node] = [], direction: Vector2 = Vector2.ZERO) -> void:
     var slot := slots[index]
     if slot == null:
         skill_failed.emit(index, &"empty_slot")
@@ -44,11 +38,11 @@ func try_activate(index: int, targets: Array[Node], ctx: SkillContext = null) ->
         skill_failed.emit(index, &"on_cooldown")
         return
 
-    if ctx == null:
-        ctx = SkillContext.new()
-        ctx.targets = targets
+    var ctx := SkillContext.new()
+    ctx.targets = targets
+    ctx.aim_direction = direction
     ctx.caster = caster
-    ctx.caster_stats = StatsComponent.of(caster)     ## resolved ONCE, here
+    ctx.caster_stats = StatsComponent.of(caster)
     if caster is Node2D:
         ctx.source_position = (caster as Node2D).global_position
 
@@ -57,9 +51,3 @@ func try_activate(index: int, targets: Array[Node], ctx: SkillContext = null) ->
 
     slot.cooldown_remaining = slot.skill.cooldown
     skill_activated.emit(index, slot.skill)
-
-## Directional skills (projectiles/cones/rays). Caller supplies the direction.
-func activate_with_direction(index: int, direction: Vector2) -> void:
-    var ctx := SkillContext.new()
-    ctx.aim_direction = direction
-    try_activate(index, [], ctx)

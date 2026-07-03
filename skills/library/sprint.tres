@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="Skill" format=3 uid="uid://3ogaripl27q3"]
+[gd_resource type="Resource" script_class="Skill" format=3 uid="uid://c5q36o7xv0qjr"]
 
 [ext_resource type="Script" uid="uid://x7ohp52w0au8" path="res://skills/core/skill_effect.gd" id="1_bdqra"]
 [ext_resource type="Script" uid="uid://2yh5rgllvif7" path="res://skills/effects/stat_buff_effect.gd" id="2_x0jof"]

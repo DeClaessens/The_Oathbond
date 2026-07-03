@@ -290,8 +290,7 @@ func apply_damage(raw: float, type: StringName, source: Node) -> void:
     hp = maxf(0.0, hp - final_amount)
     base_stats[StatKeys.HEALTH] = hp
     stat_changed.emit(StatKeys.HEALTH, hp)
-    if Engine.has_singleton("Events") or (typeof(Events) != TYPE_NIL):
-        Events.damage_dealt.emit(source, owner, int(round(final_amount)), type)
+    Events.damage_dealt.emit(source, owner, int(round(final_amount)), type)
 ```
 
 > **Rationale — `owner` as the victim:** `owner` is the scene root the component
@@ -299,9 +298,14 @@ func apply_damage(raw: float, type: StringName, source: Node) -> void:
 > the character scene. If you ever add a `StatsComponent` to a node purely from
 > code, set `owner` or emit the parent explicitly.
 
-> **Rationale — the `Events` guard:** `Events` is an autoload and always exists
-> once registered, but the guard keeps `StatsComponent` usable in isolated unit
-> scenes/tests where the autoload isn't present.
+> **Removed post-handoff — the `Events` guard:** an earlier version wrapped this
+> emit in `if Engine.has_singleton("Events") or (typeof(Events) != TYPE_NIL): ...`.
+> Dropped: `Events` resolves at compile time against the project's `[autoload]`
+> table, so if the autoload weren't registered this script wouldn't compile far
+> enough to reach the guard — both halves of that `or` test the same
+> precondition and can't fire false in practice. The guard promised an isolated-
+> test seam it didn't actually provide. If that's wanted later, it needs a real
+> seam (an injected event sink), not a runtime check on a compile-time identifier.
 
 ### 3.5 STACK mode — reserved, DO NOT build yet
 
@@ -436,9 +440,13 @@ func _process(delta: float) -> void:
             slot.tick(delta)
             cooldown_changed.emit(i, slot.cooldown_remaining, slot.skill.cooldown)
 
-## Self-targeted or explicit-target skills. `targets` is the resolved array the
-## CALLER wants affected (invariant: effects never resolve their own targets).
-func try_activate(index: int, targets: Array[Node], ctx: SkillContext = null) -> void:
+## One entry point for every skill shape. `targets` is the resolved array the
+## CALLER wants affected (invariant: effects never resolve their own targets);
+## `direction` is for directional/projectile skills. Both are always accepted
+## and always land on the SkillContext together — a multi-effect skill needing
+## both (e.g. a targeted buff plus a thrown projectile) has one path, not a
+## choice between two incompatible calls.
+func activate(index: int, targets: Array[Node] = [], direction: Vector2 = Vector2.ZERO) -> void:
     var slot := slots[index]
     if slot == null:
         skill_failed.emit(index, &"empty_slot")
@@ -447,9 +455,9 @@ func try_activate(index: int, targets: Array[Node], ctx: SkillContext = null) ->
         skill_failed.emit(index, &"on_cooldown")
         return
 
-    if ctx == null:
-        ctx = SkillContext.new()
-        ctx.targets = targets
+    var ctx := SkillContext.new()
+    ctx.targets = targets
+    ctx.aim_direction = direction
     ctx.caster = caster
     ctx.caster_stats = StatsComponent.of(caster)     ## resolved ONCE, here
     if caster is Node2D:
@@ -460,13 +468,16 @@ func try_activate(index: int, targets: Array[Node], ctx: SkillContext = null) ->
 
     slot.cooldown_remaining = slot.skill.cooldown
     skill_activated.emit(index, slot.skill)
-
-## Directional skills (projectiles/cones/rays). Caller supplies the direction.
-func activate_with_direction(index: int, direction: Vector2) -> void:
-    var ctx := SkillContext.new()
-    ctx.aim_direction = direction
-    try_activate(index, [], ctx)
 ```
+
+> **Changed post-handoff — unified `activate()`:** the original design split this
+> into `try_activate(index, targets, ctx)` and `activate_with_direction(index,
+> direction)`. Passing a `ctx` silently made `targets` a dead parameter, and
+> `activate_with_direction` had no way to also carry `targets` — a skill needing
+> both had no path through the interface. Nothing in the codebase used the
+> `ctx`-override capability, so it was dropped rather than reconciled; `targets`
+> and `direction` are now always both accepted and both always land on the
+> `SkillContext`.
 
 ---
 
@@ -539,7 +550,7 @@ extends SkillEffect
 ## Instantiates a projectile and launches it along ctx.aim_direction. Outgoing
 ## scaling is SNAPSHOT at cast time (caster's buffs bake into the projectile's
 ## damage), which is the standard behavior for fire-and-forget projectiles.
-## Use AbilityComponent.activate_with_direction() to populate aim_direction.
+## Use AbilityComponent.activate(index, [], direction) to populate aim_direction.
 
 @export var projectile_scene: PackedScene
 @export var speed: float = 600.0
@@ -719,7 +730,12 @@ Also set **`Floor`** (in `Floor.tscn` or `main.tscn`) to `collision_layer` =
 > `main.tscn` references the player scene by `uid`, so renaming the root node does
 > not break the instance — but re-save `main.tscn` in the editor after the rename.
 
-### 9.2 `player.gd` — full rewrite
+### 9.2 `player.gd` — current implementation
+
+> This listing tracks the current implementation, which has moved twice since
+> the original handoff: skills load from authored `.tres` assets instead of
+> being code-built (§13.7), and activation goes through the single `activate()`
+> entry point instead of `try_activate`/`activate_with_direction` (§4.5 note).
 
 ```gdscript
 class_name Player
@@ -730,14 +746,32 @@ extends CharacterBody2D
 
 var gravity: int = ProjectSettings.get_setting("physics/2d/default_gravity")
 
+## Skills this character has learned, independent of what's equipped in a slot.
+## RESERVED for the skill-book UI: it reads/appends known_skills, and an
+## ability-bar UI drags an entry from here into AbilityComponent.equip(skill,
+## index). Learning and equipping are deliberately separate actions. No caller
+## exists yet (no skill-book UI has been built) — this is the named seam it's
+## reserved for, same convention as StatModifier's STACK mode (handoff §3.5).
+signal skill_learned(skill: Skill)
+
+var known_skills: Array[Skill] = []
+
 func _ready() -> void:
     abilities.caster = self
-    abilities.equip(_make_sprint_skill(), 0)
-    abilities.equip(_make_super_jump_skill(), 1)
+
+    var sprint: Skill = load("res://skills/library/sprint.tres")
+    var super_jump: Skill = load("res://skills/library/super_jump.tres")
+    learn_skill(sprint)
+    learn_skill(super_jump)
+    abilities.equip(sprint, 0)
+    abilities.equip(super_jump, 1)
     # slot 2/3 reserved: projectile / enemy-targeted, wired when enemies exist
 
-    # Optional but recommended while integrating — see cooldown feedback live:
-    abilities.skill_failed.connect(func(i, reason): print("skill %d failed: %s" % [i, reason]))
+func learn_skill(skill: Skill) -> void:
+    if skill in known_skills:
+        return
+    known_skills.append(skill)
+    skill_learned.emit(skill)
 
 func _physics_process(delta: float) -> void:
     if not is_on_floor():
@@ -757,49 +791,15 @@ func _physics_process(delta: float) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
     if event.is_action_pressed(&"skill_1"):
-        abilities.try_activate(0, [self])
+        abilities.activate(0, [self])
     elif event.is_action_pressed(&"skill_2"):
-        abilities.try_activate(1, [self])
+        abilities.activate(1, [self])
     elif event.is_action_pressed(&"skill_3"):
         # directional example for when a projectile skill is equipped in slot 2
         var dir := (get_global_mouse_position() - global_position).normalized()
-        abilities.activate_with_direction(2, dir)
+        abilities.activate(2, [], dir)
     elif event.is_action_pressed(&"skill_4"):
-        abilities.try_activate(3, [self])   # placeholder until enemy targeting exists
-
-## --- starting loadout (code-built; swap to load("res://skills/library/*.tres") later) ---
-
-func _make_sprint_skill() -> Skill:
-    var eff := StatBuffEffect.new()
-    eff.stat = StatKeys.MOVE_SPEED
-    eff.op = StatModifier.Op.MULT_PCT
-    eff.value = 0.5                       # +50%  => ×1.5
-    eff.duration = 5.0
-    eff.key = &"sprint"
-    eff.stack_mode = StatModifier.StackMode.REFRESH
-    var s := Skill.new()
-    s.id = &"sprint"
-    s.display_name = "Sprint"
-    s.cooldown = 20.0
-    s.targeting = Skill.Targeting.SELF
-    s.effects = [eff] as Array[SkillEffect]
-    return s
-
-func _make_super_jump_skill() -> Skill:
-    var eff := StatBuffEffect.new()
-    eff.stat = StatKeys.JUMP_VELOCITY
-    eff.op = StatModifier.Op.MULT_PCT
-    eff.value = 0.6                       # +60%  => ×1.6
-    eff.duration = 3.0
-    eff.key = &"super_jump"
-    eff.stack_mode = StatModifier.StackMode.REFRESH
-    var s := Skill.new()
-    s.id = &"super_jump"
-    s.display_name = "Super Jump"
-    s.cooldown = 4.0
-    s.targeting = Skill.Targeting.SELF
-    s.effects = [eff] as Array[SkillEffect]
-    return s
+        abilities.activate(3, [self])   # placeholder until enemy targeting exists
 ```
 
 ### 9.3 Enemies (when they exist — not now)
@@ -866,7 +866,7 @@ Run `main.tscn` and confirm:
 - **New projectile behavior** (homing/bouncing/splitting): new scene extending
   `Area2D` with its own `_physics_process`; assign to
   `SpawnProjectileEffect.projectile_scene`.
-- **Multi-effect skill:** add several effects to `Skill.effects`; `try_activate`
+- **Multi-effect skill:** add several effects to `Skill.effects`; `activate()`
   loops them (e.g. `DamageEffect` + a burning `StatBuffEffect`).
 - **Stacking buffs (STACK mode):** implement the reserved branch in
   `add_modifier` + add `expiry_mode`; `_mods` structure already supports it (§3.5).
@@ -874,7 +874,7 @@ Run `main.tscn` and confirm:
   passive stat changes) or a replacement body for `scale_outgoing` (for a full
   offensive pipeline). `scale_outgoing` is the single seam — effects don't change.
 - **Enemy-targeted / AREA skills:** build target resolution in the *caller*
-  (player input / AI), pass resolved nodes into `try_activate`. The `Targeting`
+  (player input / AI), pass resolved nodes into `activate()`. The `Targeting`
   enum on `Skill` is the declarative hint to drive that resolution.
 
 ---
@@ -986,9 +986,37 @@ constants — not a replacement for them.
 added complexity for a cosmetic win. Deferred; nothing about the runtime
 shape needs to change to add it later.
 
-### 13.7 Fallout: existing `.tres` assets need regenerating
+### 13.7 Fallout: existing `.tres` assets needed migrating — and this went wrong once
 
 `sprint.tres`/`super_jump.tres` were saved with `stat` as a raw `StringName`
-(`&"move_speed"`). Since the field type changes to an enum, these are
-regenerated the same way they were built the first time — construct in code,
-`ResourceSaver.save()` — not hand-edited.
+(`&"move_speed"`). Since the field type changes to an enum, they can't be
+hand-edited (you'd have to know the enum's ordinal by heart), but they also
+can't be safely **rebuilt from scratch in code** — that's exactly what
+happened during this migration, and it silently discarded tuning a designer
+had already saved into both files (Sprint's `value` had been bumped from the
+code default `0.5` to `2.0`; the rebuild reverted it without anyone noticing
+until an architecture review caught it later).
+
+**The correct procedure — load, mutate, save — not rebuild:**
+
+```gdscript
+# WRONG: reconstructs the whole resource from hardcoded values, discarding
+# anything a designer tuned since it was first authored.
+var sprint := Skill.new()
+sprint.effects[0].value = 0.5   # ...guesses every field back to a "default"
+ResourceSaver.save(sprint, "res://skills/library/sprint.tres")
+
+# RIGHT: load what's actually on disk, touch only the field whose type
+# changed, save. Everything else — including hand-tuned values — survives.
+var sprint: Skill = load("res://skills/library/sprint.tres")
+var eff := sprint.effects[0] as StatBuffEffect
+eff.stat = StatKeys.Stat.MOVE_SPEED   # was a StringName; now the enum
+ResourceSaver.save(sprint, "res://skills/library/sprint.tres")
+```
+
+This is the general rule for any future schema change to an authored
+`.tres`/`.tres`-embedded `Resource`: **migrate the existing asset, never
+regenerate it from a fresh construction.** A full rebuild is only safe for
+an asset that has never been hand-tuned since it was first generated —
+and there's no way to tell that from the file itself, so treat every
+authored asset as tuned by default.

@@ -876,4 +876,119 @@ Run `main.tscn` and confirm:
 - **Enemy-targeted / AREA skills:** build target resolution in the *caller*
   (player input / AI), pass resolved nodes into `try_activate`. The `Targeting`
   enum on `Skill` is the declarative hint to drive that resolution.
+
+---
+
+## 13. Inspector-facing `Stat`/`DamageType` enums (grilled post-handoff)
+
+### 13.1 Problem
+
+`StatModifier.stat`, `StatBuffEffect.stat`, `DamageEffect.damage_type`, and
+`SpawnProjectileEffect.damage_type` were raw `StringName` fields. A designer
+hand-typing `"move_speeed"` into the Inspector gets a silent no-op — no error,
+no warning, just a buff that does nothing. Worse, `DamageEffect`/
+`SpawnProjectileEffect.damage_type` had **no enumeration anywhere** — pure
+freeform string, the single biggest typo surface in the system.
+
+### 13.2 Decision: enum-as-authoring-layer, not enum-as-runtime
+
+The runtime is **not** changing. `StatsComponent.base_stats`, `get_stat()`,
+`scale_outgoing()`, `apply_damage()`, and `StatModifier.stat` all stay
+`StringName`-keyed, exactly as built. Only the three Inspector-editable
+`SkillEffect` subclasses (`StatBuffEffect`, `DamageEffect`,
+`SpawnProjectileEffect`) change — their exported fields become enums, and a
+converter turns the enum pick into the same `StringName` the engine has
+always used.
+
+**Rejected alternative — enum-native runtime:** retyping `base_stats`/
+`StatModifier.stat`/`get_stat()` to take the enum directly. Rejected for two
+concrete reasons:
+1. **Serialization fragility.** `.tres` files store enum fields as raw ints
+   (see `sprint.tres`: `op = 2`). If `Stat` were threaded into the runtime and
+   someone later inserts a new entry in the middle of the enum, every
+   existing `.tres` silently starts pointing at the wrong stat — no error,
+   just a plausible-looking wrong number. `StringName` has no such
+   positional dependency.
+2. **`dmg_<type>`/`resist_<type>` are composed, not enumerable**, without a
+   combinatorial `DMG_FIRE`/`RESIST_FIRE`/`DMG_ICE`/... enum that has to stay
+   in lockstep with `DamageType` by hand.
+
+### 13.3 The enums (`res://skills/stats/stat_keys.gd`)
+
+```gdscript
+enum Stat {
+    MOVE_SPEED,
+    JUMP_VELOCITY,
+    MAX_HEALTH,
+    HEALTH,
+    OUTGOING_DAMAGE,   ## compound — pair with a DamageType; means dmg_<type>
+    RESISTANCE,        ## compound — pair with a DamageType; means resist_<type>
+}
+
+enum DamageType {
+    PHYSICAL,
+    FIRE,
+}
 ```
+
+Minimal `DamageType` palette on purpose — only the two types that already
+appear in code. Adding `ICE`/`LIGHTNING`/etc. later is a one-line enum
+addition + one `match` arm; this is simply what a closed enum is, not a
+deferred cost.
+
+### 13.4 Converter (also in `stat_keys.gd`)
+
+```gdscript
+static func to_stringname(stat: Stat, damage_type: DamageType = DamageType.PHYSICAL) -> StringName:
+    match stat:
+        Stat.MOVE_SPEED:      return MOVE_SPEED
+        Stat.JUMP_VELOCITY:   return JUMP_VELOCITY
+        Stat.MAX_HEALTH:      return MAX_HEALTH
+        Stat.HEALTH:          return HEALTH
+        Stat.OUTGOING_DAMAGE: return dmg(damage_type_name(damage_type))
+        Stat.RESISTANCE:      return resist(damage_type_name(damage_type))
+    return &""
+
+static func damage_type_name(type: DamageType) -> StringName:
+    match type:
+        DamageType.PHYSICAL: return &"physical"
+        DamageType.FIRE:     return &"fire"
+    return &"physical"
+```
+
+`StatKeys.MOVE_SPEED`/`JUMP_VELOCITY`/etc. (the existing `StringName`
+constants) are unchanged and remain what runtime code (e.g. `player.gd`'s
+`stats.get_stat(StatKeys.JUMP_VELOCITY)`) uses directly. The enums are a
+parallel, Inspector-facing vocabulary that resolves back down to those same
+constants — not a replacement for them.
+
+### 13.5 Field changes
+
+- `stat_buff_effect.gd`: `stat: StringName` → `stat: StatKeys.Stat`. New field
+  `damage_type: StatKeys.DamageType` (always visible in the Inspector, per
+  §13.6 below; meaningless unless `stat` is `OUTGOING_DAMAGE`/`RESISTANCE`).
+  `execute()` calls `StatKeys.to_stringname(stat, damage_type)` instead of
+  assigning `stat` straight through.
+- `damage_effect.gd` / `spawn_projectile_effect.gd`: `damage_type: StringName`
+  → `damage_type: StatKeys.DamageType`. `execute()` converts once via
+  `StatKeys.damage_type_name(damage_type)` before calling `scale_outgoing`/
+  `apply_damage`.
+- `stat_modifier.gd`, `stats_component.gd`, `skill.gd`, `ability_component.gd`,
+  `projectile.gd`, `player.gd` — **untouched**. `StatModifier` is never
+  authored directly in the Inspector (only built in code by `StatBuffEffect`),
+  so it never needed the enum treatment.
+
+### 13.6 Rejected: conditional field visibility
+
+`damage_type` is always visible on `StatBuffEffect`, even when `stat` is
+`MOVE_SPEED` (where it's simply ignored). Hiding it conditionally would need
+`@tool` + `_validate_property()`/`_get_property_list()` overrides — real
+added complexity for a cosmetic win. Deferred; nothing about the runtime
+shape needs to change to add it later.
+
+### 13.7 Fallout: existing `.tres` assets need regenerating
+
+`sprint.tres`/`super_jump.tres` were saved with `stat` as a raw `StringName`
+(`&"move_speed"`). Since the field type changes to an enum, these are
+regenerated the same way they were built the first time — construct in code,
+`ResourceSaver.save()` — not hand-edited.

@@ -5,7 +5,8 @@ extends SkillEffect
 ## lifetime to the target's StatsComponent — NO await here. A speed buff and a
 ## jump buff are the same class, different data. Set duration <= 0 for permanent.
 
-@export var stat: StringName = &"placeholder"
+@export var stat: StatKeys.Stat = StatKeys.Stat.MOVE_SPEED
+@export var damage_type: StatKeys.DamageType = StatKeys.DamageType.PHYSICAL  ## only used when stat is OUTGOING_DAMAGE/RESISTANCE
 @export var op: StatModifier.Op = StatModifier.Op.MULT_PCT
 @export var value: float = 0.5                                   ## +50% for MULT/ADD; absolute for FLAT
 @export var duration: float = 5.0
@@ -19,7 +20,7 @@ func execute(ctx: SkillContext) -> void:
             push_warning("StatBuffEffect: %s has no StatsComponent" % target)
             continue
         var mod := StatModifier.new()
-        mod.stat = stat
+        mod.stat = StatKeys.to_stringname(stat, damage_type)
         mod.op = op
         mod.value = value
         mod.duration = duration

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="Skill" format=3 uid="uid://p2sbn5e3tp8i"]
+[gd_resource type="Resource" script_class="Skill" format=3 uid="uid://bysuoj2bd0ma"]
 
 [ext_resource type="Script" uid="uid://x7ohp52w0au8" path="res://skills/core/skill_effect.gd" id="1_ww0ci"]
 [ext_resource type="Script" uid="uid://2yh5rgllvif7" path="res://skills/effects/stat_buff_effect.gd" id="2_efieq"]
@@ -6,7 +6,8 @@
 
 [sub_resource type="Resource" id="Resource_vhsgg"]
 script = ExtResource("2_efieq")
-stat = &"jump_velocity"
+stat = 1
+op = 0
 value = 0.6
 duration = 3.0
 key = &"super_jump"

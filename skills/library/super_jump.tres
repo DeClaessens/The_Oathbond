@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="Skill" format=3 uid="uid://64rpa0oqt7ga"]
+
+[ext_resource type="Script" uid="uid://x7ohp52w0au8" path="res://skills/core/skill_effect.gd" id="1_ww0ci"]
+[ext_resource type="Script" uid="uid://2yh5rgllvif7" path="res://skills/effects/stat_buff_effect.gd" id="2_efieq"]
+[ext_resource type="Script" uid="uid://cx2o300duwfpu" path="res://skills/core/skill.gd" id="3_h0jo2"]
+
+[sub_resource type="Resource" id="Resource_vhsgg"]
+script = ExtResource("2_efieq")
+stat = 1
+value = 1.4
+duration = 3.0
+key = &"super_jump"
+
+[resource]
+script = ExtResource("3_h0jo2")
+id = &"super_jump"
+display_name = "Super Jump"
+description = "Jump higher for a short time."
+cooldown = 4.0
+effects = Array[ExtResource("1_ww0ci")]([SubResource("Resource_vhsgg")])

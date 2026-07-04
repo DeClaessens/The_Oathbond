@@ -1,0 +1,15 @@
+class_name Skill
+extends Resource
+
+enum Targeting { SELF, ALLY, ENEMY, AREA, NONE }
+
+@export var id: StringName
+@export var display_name: String
+@export var icon: Texture2D
+@export_multiline var description: String
+
+@export var cooldown: float = 1.0
+@export var resource_cost: int = 0
+@export var targeting: Targeting = Targeting.SELF
+
+@export var effects: Array[SkillEffect] = []

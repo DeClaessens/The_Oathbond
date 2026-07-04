@@ -2,11 +2,16 @@
 
 [ext_resource type="PackedScene" uid="uid://cphh21iw50k52" path="res://Floor.tscn" id="2_0xm2m"]
 [ext_resource type="PackedScene" uid="uid://567ev6herjty" path="res://Player.tscn" id="2_h2yge"]
+[ext_resource type="Script" uid="uid://8a10inkl7dra" path="res://main.gd" id="3_main"]
+[ext_resource type="PackedScene" uid="uid://57fsvgs5asb5" path="res://ui/skill_bar/skill_bar.tscn" id="4_hud"]
 
 [node name="Main" type="Node2D" unique_id=1234891808]
+script = ExtResource("3_main")
 
 [node name="Floor" parent="." unique_id=1015941737 instance=ExtResource("2_0xm2m")]
 position = Vector2(0, 605)
 
 [node name="Player" parent="." unique_id=17166481 instance=ExtResource("2_h2yge")]
 position = Vector2(124, 494)
+
+[node name="SkillBarHUD" parent="." unique_id=1712213688 instance=ExtResource("4_hud")]

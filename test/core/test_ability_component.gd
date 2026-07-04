@@ -34,3 +34,19 @@ func test_ally_targeting_fails_with_no_target_selection_system():
     var result := AbilityComponent._resolve_targeting(Skill.Targeting.ALLY, caster, Vector2.ZERO, Vector2.ZERO)
     assert_false(result.ok)
     assert_push_error("ALLY")
+
+func test_equip_emits_slot_changed_with_the_skill():
+    var abilities := AbilityComponent.new()
+    add_child_autofree(abilities)
+    var skill := Skill.new()
+    watch_signals(abilities)
+    abilities.equip(skill, 2)
+    assert_signal_emitted_with_parameters(abilities, "slot_changed", [2, skill])
+
+func test_unequip_emits_slot_changed_with_null():
+    var abilities := AbilityComponent.new()
+    add_child_autofree(abilities)
+    abilities.equip(Skill.new(), 0)
+    watch_signals(abilities)
+    abilities.unequip(0)
+    assert_signal_emitted_with_parameters(abilities, "slot_changed", [0, null])

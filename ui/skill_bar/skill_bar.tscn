@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://57fsvgs5asb5"]
+
+[ext_resource type="Script" path="res://ui/skill_bar/skill_bar.gd" id="1_bar"]
+
+[node name="SkillBarHUD" type="CanvasLayer"]
+script = ExtResource("1_bar")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]

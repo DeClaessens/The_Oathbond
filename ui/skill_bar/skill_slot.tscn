@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://f7sqhllc02o7"]
+
+[ext_resource type="Script" path="res://ui/skill_bar/skill_slot.gd" id="1_slot"]
+
+[node name="SkillSlot" type="Control"]
+custom_minimum_size = Vector2(64, 64)
+script = ExtResource("1_slot")
+
+[node name="Content" type="Control" parent="."]
+
+[node name="Frame" type="Panel" parent="Content"]
+
+[node name="Icon" type="TextureRect" parent="Content"]
+
+[node name="Letter" type="Label" parent="Content"]
+
+[node name="CooldownWedge" type="Control" parent="Content"]
+
+[node name="Seconds" type="Label" parent="Content"]
+
+[node name="Keybind" type="Label" parent="Content"]
+text = "1"

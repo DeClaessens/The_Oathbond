@@ -11,13 +11,11 @@ const FILLED_BORDER := Color(0.55, 0.6, 0.72)
 const EMPTY_BG := Color(0.08, 0.09, 0.11, 0.35)
 const EMPTY_BORDER := Color(0.35, 0.37, 0.44, 0.55)
 const LETTER_TILE := Color(0.2, 0.28, 0.44)
-const WEDGE_COLOR := Color(0, 0, 0, 0.6)
 
 var index: int = 0
 
 var _filled: bool = false
 var _fraction: float = 0.0
-var _was_cooling: bool = false
 var _base_modulate: Color = Color.WHITE
 var _ready_plays: int = 0
 var _fail_plays: int = 0
@@ -26,7 +24,7 @@ var _fail_plays: int = 0
 @onready var _frame: Panel = $Content/Frame
 @onready var _icon: TextureRect = $Content/Icon
 @onready var _letter: Label = $Content/Letter
-@onready var _wedge: Control = $Content/CooldownWedge
+@onready var _wedge: CooldownWedge = $Content/CooldownWedge
 @onready var _seconds: Label = $Content/Seconds
 @onready var _keybind: Label = $Content/Keybind
 
@@ -69,7 +67,6 @@ func _ready() -> void:
     _seconds.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     _seconds.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
     _keybind.text = SkillSlot.keybind_label(index)
-    _wedge.draw.connect(_on_wedge_draw)
     set_skill(null)
 
 
@@ -103,14 +100,10 @@ func set_skill(skill: Skill) -> void:
 func set_cooldown(remaining: float, total: float) -> void:
     _fraction = SkillSlot.cooldown_fraction(remaining, total)
     _wedge.visible = _fraction > 0.0
-    _wedge.queue_redraw()
+    _wedge.set_fraction(_fraction)
     var text := SkillSlot.format_seconds(remaining)
     _seconds.text = text
     _seconds.visible = text != ""
-    var cooling := remaining > 0.0
-    if _was_cooling and not cooling:
-        play_ready()
-    _was_cooling = cooling
 
 ## Optional immediate full wedge on cast; set_cooldown drives the rest.
 func begin_cooldown(total: float) -> void:
@@ -155,13 +148,12 @@ func state() -> Dictionary:
 
 func _clear_cooldown() -> void:
     _fraction = 0.0
-    _was_cooling = false
     if _seconds != null:
         _seconds.text = ""
         _seconds.hide()
     if _wedge != null:
         _wedge.hide()
-        _wedge.queue_redraw()
+        _wedge.set_fraction(0.0)
 
 func _apply_frame(bg: Color, border: Color) -> void:
     _frame.add_theme_stylebox_override("panel", _make_box(bg, border))
@@ -173,18 +165,3 @@ func _make_box(bg: Color, border: Color) -> StyleBoxFlat:
     box.border_color = border
     box.set_corner_radius_all(6)
     return box
-
-func _on_wedge_draw() -> void:
-    if _fraction <= 0.0:
-        return
-    var wsize := _wedge.size
-    var center := wsize / 2.0
-    var radius := maxf(wsize.x, wsize.y) / 2   # overshoot to cover corners
-    var steps := 48
-    var start := -PI / 2.0                 # top
-    var end := start + TAU * _fraction     # clockwise
-    var pts := PackedVector2Array([center])
-    for i in steps + 1:
-        var a := start + (end - start) * (float(i) / steps)
-        pts.append(center + Vector2(cos(a), sin(a)) * radius)
-    _wedge.draw_colored_polygon(pts, WEDGE_COLOR)

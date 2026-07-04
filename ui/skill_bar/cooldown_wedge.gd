@@ -3,6 +3,9 @@ extends Control
 
 var _fraction: float = 0.0
 
+func fraction() -> float:
+    return _fraction
+
 func set_fraction(f: float) -> void:
     _fraction = clampf(f, 0.0, 1.0)
     queue_redraw()
@@ -11,7 +14,7 @@ func _draw() -> void:
     if _fraction <= 0.0:
         return
     var center := size / 2.0
-    var radius := maxf(size.x, size.y)
+    var radius := maxf(size.x, size.y) / 2   # overshoot to cover corners
     var steps := 48
     var start := -PI / 2.0
     var end := start + TAU * _fraction

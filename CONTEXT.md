@@ -17,6 +17,7 @@ _Avoid_: Action, behavior
 **Ability Slot**:
 One of a character's four equip slots. Holds one Skill and tracks that slot's own cooldown, independent of the Skill itself and of any other character's slot holding the same Skill.
 _Avoid_: Slot (on its own), loadout slot
+_Known drift_: the Skill Bar's per-slot UI class is named `SkillSlot` (`ui/skill_bar/skill_slot.gd`), not `AbilitySlotView` or similar — tracked as tech debt, not yet renamed.
 
 **Caster**:
 The character — player or enemy — that activates a Skill.

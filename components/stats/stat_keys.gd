@@ -26,7 +26,10 @@ enum DamageType {
     FIRE,
 }
 
-static func to_stringname(stat: Stat, damage_type: DamageType = DamageType.PHYSICAL) -> StringName:
+## damage_type is only read for OUTGOING_DAMAGE and RESISTANCE; it's ignored
+## for MOVE_SPEED, JUMP_VELOCITY, and MAX_HEALTH. No default — always pass
+## the DamageType you mean, even when the Stat won't use it.
+static func to_stringname(stat: Stat, damage_type: DamageType) -> StringName:
     match stat:
         Stat.MOVE_SPEED:      return MOVE_SPEED
         Stat.JUMP_VELOCITY:   return JUMP_VELOCITY

@@ -1,9 +1,5 @@
 extends GutTest
 
-## SkillBar binding model, exercised against a FAKE ability component (a plain
-## Node exposing the same signals, a `slots` array, and SLOT_COUNT). We assert on
-## each SkillSlot's observable state() rather than on tween/render internals.
-
 const SkillBarScene := preload("res://ui/skill_bar/skill_bar.tscn")
 
 

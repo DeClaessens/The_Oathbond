@@ -1,8 +1,5 @@
 extends GutTest
 
-## CooldownWedge's fraction clamp — _draw()'s geometry is not asserted, same
-## as the rest of the Skill Bar's rendering.
-
 func test_set_fraction_stores_the_value():
     var wedge := CooldownWedge.new()
     add_child_autofree(wedge)

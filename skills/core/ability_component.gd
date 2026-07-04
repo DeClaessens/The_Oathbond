@@ -5,7 +5,7 @@ signal skill_activated(index: int, skill: Skill)
 signal skill_failed(index: int, reason: StringName)
 signal cooldown_changed(index: int, remaining: float, total: float)
 signal skill_ready(index: int)
-signal slot_changed(index: int, skill: Skill)   # skill == null when emptied
+signal slot_changed(index: int, skill: Skill)
 
 const SLOT_COUNT := 4
 
@@ -75,7 +75,6 @@ func activate(index: int, aim_point: Vector2 = Vector2.ZERO) -> void:
     slot.cooldown_remaining = slot.skill.cooldown
     skill_activated.emit(index, slot.skill)
 
-## Pure: no tree access, no side effects besides push_error on an unimplemented mode.
 static func _resolve_activation(skill: Skill, is_ready: bool, caster: Node, source_position: Vector2, aim_point: Vector2) -> Dictionary:
     if not is_ready:
         return {ok = false, failure_reason = &"on_cooldown", targets = [] as Array[Node], aim_direction = Vector2.ZERO}

@@ -1,6 +1,5 @@
 extends GutTest
 
-
 class FakeSkillEffect extends SkillEffect:
     var execute_calls := 0
     var last_ctx: SkillContext

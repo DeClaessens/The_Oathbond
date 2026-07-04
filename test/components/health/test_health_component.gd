@@ -31,7 +31,6 @@ func test_apply_damage_uses_stats_component_resistance():
     var entity := _make_entity(100.0, 5.0)
     var health := HealthComponent.of(entity)
     health.apply_damage(100.0, StatKeys.DamageType.PHYSICAL, null)
-    # resist clamps to 0.9, so 100 * (1 - 0.9) = 10 damage taken
     assert_eq(health.current(), 90.0)
 
 func test_apply_damage_clamps_at_zero():
@@ -54,8 +53,6 @@ func test_apply_damage_clamps_negative_raw_damage_to_zero():
     assert_eq(health.current(), 100.0, "negative raw damage must not heal")
 
 func test_apply_damage_clamps_over_reduced_damage_to_zero():
-    # resist clamps to 0.9 in StatsComponent, but simulate an outgoing modifier
-    # that already reduced the raw amount below zero before mitigation.
     var entity := _make_entity(100.0)
     var health := HealthComponent.of(entity)
     health.apply_damage(-1.0, StatKeys.DamageType.PHYSICAL, null)

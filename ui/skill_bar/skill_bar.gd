@@ -1,15 +1,8 @@
 class_name SkillBar
 extends CanvasLayer
 
-## Read-only HUD mirroring a character's Ability Slots. It binds directly to one
-## AbilityComponent (not the Events bus) and forwards that component's per-slot
-## signals to the matching SkillSlot view. It never equips or activates.
-
 const SkillSlotScene := preload("res://ui/skill_bar/skill_slot.tscn")
 
-## Duck-typed: the real AbilityComponent, or any Node exposing the same signals,
-## a `slots` array, and `SLOT_COUNT`. Loosened from AbilityComponent so the HUD
-## can be unit-tested against a fake (see test/ui/test_skill_bar.gd).
 var _abilities: Node
 
 var _slots: Array[SkillSlot] = []
@@ -18,17 +11,13 @@ var _slots: Array[SkillSlot] = []
 
 func _ready() -> void:
     var margin: MarginContainer = $MarginContainer
-    # Anchor to the bottom-centre POINT (zero anchor-span) and grow upward, so the
-    # container's size tracks its content min size whenever the HBox re-sorts. A
-    # min-size preset sampled here would read zero (slots aren't added yet) and
-    # freeze the bar off the bottom edge.
     margin.anchor_left = 0.5
     margin.anchor_right = 0.5
     margin.anchor_top = 1.0
     margin.anchor_bottom = 1.0
     margin.grow_horizontal = Control.GROW_DIRECTION_BOTH
     margin.grow_vertical = Control.GROW_DIRECTION_BEGIN
-    margin.offset_top = -24.0    # 24px of clearance above the bottom edge
+    margin.offset_top = -24.0
     margin.offset_bottom = -24.0
     _hbox.alignment = BoxContainer.ALIGNMENT_CENTER
     _hbox.add_theme_constant_override("separation", 8)

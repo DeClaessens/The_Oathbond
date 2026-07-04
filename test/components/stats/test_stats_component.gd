@@ -51,7 +51,6 @@ func test_multiple_mult_pct_modifiers_compound_multiplicatively():
     mod_b.value = 0.5
     stats.add_modifier(mod_a)
     stats.add_modifier(mod_b)
-    # 100 * (1+1.0) * (1+0.5) = 300 -- multiplicative buckets compound, they don't sum
     assert_eq(stats.get_stat(StatKeys.MOVE_SPEED), 300.0)
 
 func test_flat_add_and_mult_compose_in_bucket_order():
@@ -71,7 +70,6 @@ func test_flat_add_and_mult_compose_in_bucket_order():
     stats.add_modifier(flat)
     stats.add_modifier(add)
     stats.add_modifier(mult)
-    # (100 + 50) * (1 + 0.2) * (1 + 0.5) = 270 -- ADR-0001's bucket order
     assert_eq(stats.get_stat(StatKeys.MOVE_SPEED), 270.0)
 
 func test_scale_outgoing_applies_offensive_modifiers_to_skill_base():
@@ -86,7 +84,6 @@ func test_mitigate_incoming_clamps_resistance_at_0_9():
     stats.base_stats = {
         StatKeys.resist(StatKeys.damage_type_name(StatKeys.DamageType.PHYSICAL)): 5.0,
     }
-    # resist clamps to 0.9, so 100 * (1 - 0.9) = 10 damage taken
     assert_almost_eq(stats.mitigate_incoming(100.0, StatKeys.DamageType.PHYSICAL), 10.0, 0.0001)
 
 func _keyed_mod(value: float, duration: float, op: StatModifier.Op = StatModifier.Op.ADD_PCT) -> StatModifier:
@@ -129,7 +126,6 @@ func test_stack_mode_stacks_up_to_max_stacks():
         mod.max_stacks = 3
         stats.add_modifier(mod)
 
-    # three 10% additive stacks: 100 * (1 + 0.3) = 130
     assert_eq(stats.get_stat(StatKeys.MOVE_SPEED), 130.0)
 
 func test_stack_mode_does_not_exceed_max_stacks():
@@ -140,7 +136,6 @@ func test_stack_mode_does_not_exceed_max_stacks():
         mod.max_stacks = 3
         stats.add_modifier(mod)
 
-    # capped at 3 stacks regardless of how many times it was applied
     assert_eq(stats.get_stat(StatKeys.MOVE_SPEED), 130.0)
 
 func test_stack_mode_emits_stat_changed_on_each_application():
@@ -164,5 +159,4 @@ func test_stack_mode_stacks_expire_independently():
 
     stats._process(1.5)
 
-    # the short-lived stack expired, the long-lived one remains
     assert_almost_eq(stats.get_stat(StatKeys.MOVE_SPEED), 110.0, 0.0001)

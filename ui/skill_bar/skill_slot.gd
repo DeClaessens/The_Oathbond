@@ -1,11 +1,6 @@
 class_name SkillSlot
 extends Control
 
-## One read-only view of an Ability Slot: shows the equipped Skill (icon or
-## first-letter tile), the live radial cooldown wedge with a seconds numeral, and
-## plays a ready flash / fail shake. All decision logic lives in the pure statics
-## below so it is testable without rendering.
-
 const FILLED_BG := Color(0.12, 0.13, 0.17, 0.85)
 const FILLED_BORDER := Color(0.55, 0.6, 0.72)
 const EMPTY_BG := Color(0.08, 0.09, 0.11, 0.35)
@@ -28,9 +23,6 @@ var _fail_plays: int = 0
 @onready var _seconds: Label = $Content/Seconds
 @onready var _keybind: Label = $Content/Keybind
 
-
-# --- Pure statics (no tree access — unit-testable) -----------------------------
-
 static func format_seconds(remaining: float) -> String:
     return "" if remaining <= 0.0 else str(ceili(remaining))
 
@@ -50,9 +42,6 @@ static func keybind_label(slot_index: int) -> String:
 static func first_letter(display_name: String) -> String:
     return display_name.substr(0, 1).to_upper() if display_name != "" else "?"
 
-
-# --- Lifecycle -----------------------------------------------------------------
-
 func _ready() -> void:
     custom_minimum_size = Vector2(64, 64)
     for c: Control in [_content, _frame, _icon, _letter, _wedge, _seconds]:
@@ -68,9 +57,6 @@ func _ready() -> void:
     _seconds.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
     _keybind.text = SkillSlot.keybind_label(index)
     set_skill(null)
-
-
-# --- Public API (thin visuals) -------------------------------------------------
 
 func set_skill(skill: Skill) -> void:
     _clear_cooldown()
@@ -105,7 +91,6 @@ func set_cooldown(remaining: float, total: float) -> void:
     _seconds.text = text
     _seconds.visible = text != ""
 
-## Optional immediate full wedge on cast; set_cooldown drives the rest.
 func begin_cooldown(total: float) -> void:
     if total > 0.0:
         set_cooldown(total, total)
@@ -129,7 +114,6 @@ func play_fail() -> void:
         t.tween_property(_content, "position:x", dx, 0.04)
     t.parallel().tween_property(_content, "modulate", _base_modulate, 0.2)
 
-## Observable state for tests (no rendering required).
 func state() -> Dictionary:
     return {
         "filled": _filled,
@@ -143,17 +127,12 @@ func state() -> Dictionary:
         "fail_plays": _fail_plays,
     }
 
-
-# --- Internals -----------------------------------------------------------------
-
 func _clear_cooldown() -> void:
     _fraction = 0.0
-    if _seconds != null:
-        _seconds.text = ""
-        _seconds.hide()
-    if _wedge != null:
-        _wedge.hide()
-        _wedge.set_fraction(0.0)
+    _seconds.text = ""
+    _seconds.hide()
+    _wedge.hide()
+    _wedge.set_fraction(0.0)
 
 func _apply_frame(bg: Color, border: Color) -> void:
     _frame.add_theme_stylebox_override("panel", _make_box(bg, border))

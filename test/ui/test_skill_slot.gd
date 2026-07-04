@@ -1,7 +1,5 @@
 extends GutTest
 
-## Pure decision logic of SkillSlot — no rendering required.
-
 func test_format_seconds_ready_is_empty():
     assert_eq(SkillSlot.format_seconds(0.0), "")
 
@@ -20,11 +18,9 @@ func test_cooldown_fraction_with_zero_total_is_zero():
     assert_eq(SkillSlot.cooldown_fraction(5.0, 0.0), 0.0)
 
 func test_keybind_label_reads_the_input_map():
-    # skill_1 is mapped to physical key "1" in project.godot.
     assert_eq(SkillSlot.keybind_label(0), "1")
 
 func test_keybind_label_falls_back_for_unmapped_index():
-    # No skill_9 action exists → falls back to the 1-based index string.
     assert_false(InputMap.has_action(&"skill_9"))
     assert_eq(SkillSlot.keybind_label(8), "9")
 

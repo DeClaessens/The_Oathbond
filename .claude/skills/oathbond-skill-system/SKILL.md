@@ -15,17 +15,23 @@ the vocabulary (Skill vs Effect vs Slot, Buff vs Debuff, Targeting) lives in
 
 ## Map
 
-Everything is under `res://skills/`. GDScript resolves by `class_name`, not
-path — folders are cosmetic.
+The skill-casting machinery is under `res://skills/`. Character-composition
+primitives that aren't skill-specific — usable by any character whether or
+not it ever casts anything — live in `res://components/` instead (ADR-0007).
+GDScript resolves by `class_name`, not path — folders are cosmetic.
 
-- `stats/stat_keys.gd` — `StatKeys`: `StringName` stat constants + the
-  Inspector-facing `Stat` / `DamageType` enums and their `to_stringname` /
+- `components/stats/stat_keys.gd` — `StatKeys`: `StringName` stat constants +
+  the Inspector-facing `Stat` / `DamageType` enums and their `to_stringname` /
   `damage_type_name` converters.
-- `stats/stat_modifier.gd` — `StatModifier`: one op (`FLAT` / `ADD_PCT` /
-  `MULT_PCT`) on one stat, with duration + stacking policy. Runtime state lives
-  here.
-- `stats/stats_component.gd` — `StatsComponent`: the one authority on every
-  number, both directions (`get_stat`, `scale_outgoing`, `apply_damage`).
+- `components/stats/stat_modifier.gd` — `StatModifier`: one op (`FLAT` /
+  `ADD_PCT` / `MULT_PCT`) on one stat, with duration + stacking policy. Runtime
+  state lives here.
+- `components/stats/stats_component.gd` — `StatsComponent`: the one authority
+  on every number, both directions (`get_stat`, `scale_outgoing`,
+  `apply_damage`).
+- `components/faction/faction_component.gd` — `FactionComponent`: identity
+  only (`Faction.PLAYER` / `ENEMY` / `NEUTRAL`, resolved via
+  `FactionComponent.of()`); does not resolve hostility between factions.
 - `core/skill.gd` — `Skill` (Resource): pure data, metadata + `effects` array +
   a `Targeting` hint.
 - `core/skill_effect.gd` — `SkillEffect` (Resource): base class; override

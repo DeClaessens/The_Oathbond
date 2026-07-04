@@ -1,0 +1,31 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" uid="uid://in2rn1m1q1ge" path="res://icon.svg" id="1_icon"]
+[ext_resource type="Script" uid="uid://b4pbyyq5xdsln" path="res://components/stats/stats_component.gd" id="2_stats"]
+[ext_resource type="Script" path="res://components/faction/faction_component.gd" id="3_faction"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_dummy"]
+size = Vector2(127, 128)
+
+[node name="TrainingDummy" type="CharacterBody2D"]
+collision_layer = 4
+collision_mask = 1
+
+[node name="Icon" type="Sprite2D" parent="."]
+position = Vector2(-1, 0)
+texture = ExtResource("1_icon")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(-0.5, 0)
+shape = SubResource("RectangleShape2D_dummy")
+
+[node name="StatsComponent" type="Node" parent="."]
+script = ExtResource("2_stats")
+base_stats = {
+"health": 999999.0,
+"max_health": 999999.0
+}
+
+[node name="FactionComponent" type="Node" parent="."]
+script = ExtResource("3_faction")
+faction = 1

@@ -4,6 +4,7 @@ extends Node
 signal skill_activated(index: int, skill: Skill)
 signal skill_failed(index: int, reason: StringName)
 signal cooldown_changed(index: int, remaining: float, total: float)
+signal slot_changed(index: int, skill: Skill)   # skill == null when emptied
 
 const SLOT_COUNT := 4
 
@@ -18,9 +19,11 @@ func equip(skill: Skill, index: int) -> void:
     var slot := AbilitySlot.new()
     slot.skill = skill
     slots[index] = slot
+    slot_changed.emit(index, skill)
 
 func unequip(index: int) -> void:
     slots[index] = null
+    slot_changed.emit(index, null)
 
 func _process(delta: float) -> void:
     for i in slots.size():

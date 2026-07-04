@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://567ev6herjty"]
 
-[ext_resource type="Script" uid="uid://beonpucf38xno" path="res://player.gd" id="1_kpjcp"]
+[ext_resource type="Script" uid="uid://beonpucf38xno" path="res://entities/player/player.gd" id="1_kpjcp"]
 [ext_resource type="Texture2D" uid="uid://in2rn1m1q1ge" path="res://icon.svg" id="1_xhfnw"]
-[ext_resource type="Script" path="res://skills/stats/stats_component.gd" id="2_stats"]
-[ext_resource type="Script" path="res://skills/core/ability_component.gd" id="3_abilities"]
+[ext_resource type="Script" uid="uid://b4pbyyq5xdsln" path="res://skills/stats/stats_component.gd" id="2_stats"]
+[ext_resource type="Script" uid="uid://cp2rikhckvi5e" path="res://skills/core/ability_component.gd" id="3_abilities"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_eae6q"]
 size = Vector2(127, 128)

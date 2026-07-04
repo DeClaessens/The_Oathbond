@@ -108,6 +108,36 @@ func test_slot_changed_null_empties_a_slot():
 
     assert_false(bar._slots[0].state()["filled"])
 
+func test_binding_the_same_object_twice_does_not_double_fire_feedback():
+    var built := _build()
+    var bar: SkillBar = built[0]
+    var fake: FakeAbilities = built[1]
+    fake.slots = [_make_slot(_make_skill("Sprint")), null, null, null]
+    bar.bind(fake)
+    bar.bind(fake)
+
+    fake.skill_failed.emit(0, &"on_cooldown")
+
+    assert_eq(bar._slots[0].state()["fail_plays"], 1, "rebinding the same object must not duplicate connections")
+
+func test_rebinding_to_a_different_object_stops_forwarding_the_old_one():
+    var built := _build()
+    var bar: SkillBar = built[0]
+    var old_fake: FakeAbilities = built[1]
+    old_fake.slots = [_make_slot(_make_skill("Sprint")), null, null, null]
+    bar.bind(old_fake)
+
+    var new_fake := FakeAbilities.new()
+    add_child_autofree(new_fake)
+    new_fake.slots = [_make_slot(_make_skill("Sprint")), null, null, null]
+    bar.bind(new_fake)
+
+    old_fake.skill_failed.emit(0, &"on_cooldown")
+    assert_eq(bar._slots[0].state()["fail_plays"], 0, "the old ability component must be disconnected after rebind")
+
+    new_fake.skill_failed.emit(0, &"on_cooldown")
+    assert_eq(bar._slots[0].state()["fail_plays"], 1, "the newly bound ability component must still drive the bar")
+
 func test_skill_failed_plays_the_fail_feedback():
     var built := _build()
     var bar: SkillBar = built[0]

@@ -9,7 +9,7 @@ extends SkillEffect
 @export var key: StringName = &""
 @export var stack_mode: StatModifier.StackMode = StatModifier.StackMode.REFRESH
 
-func execute(ctx: SkillContext) -> void:
+func execute(ctx: SkillContext) -> bool:
     for target in ctx.targets:
         var stats := StatsComponent.of(target)
         if stats == null:
@@ -23,3 +23,4 @@ func execute(ctx: SkillContext) -> void:
         mod.stack_mode = stack_mode
         mod.source = self
         stats.add_modifier(mod)
+    return true

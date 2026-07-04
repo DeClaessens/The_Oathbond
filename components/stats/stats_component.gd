@@ -45,11 +45,19 @@ func add_modifier(mod: StatModifier) -> void:
 			StatModifier.StackMode.REFRESH:
 				var existing := _find_by_key(mod.key)
 				if existing != null:
+					existing.stat = mod.stat
+					existing.op = mod.op
+					existing.value = mod.value
+					existing.duration = mod.duration
+					existing.source = mod.source
 					existing.remaining = mod.duration
 					stat_changed.emit(existing.stat, get_stat(existing.stat))
 					return
 			StatModifier.StackMode.STACK:
-				assert(false, "STACK mode not implemented")
+				var cap := maxi(mod.max_stacks, 1)
+				var same_key := _mods_by_key(mod.key)
+				if same_key.size() >= cap:
+					_mods.erase(same_key[0])
 
 	mod.remaining = mod.duration
 	_mods.append(mod)
@@ -65,6 +73,13 @@ func _find_by_key(key: StringName) -> StatModifier:
 		if m.key == key:
 			return m
 	return null
+
+func _mods_by_key(key: StringName) -> Array[StatModifier]:
+	var out: Array[StatModifier] = []
+	for m in _mods:
+		if m.key == key:
+			out.append(m)
+	return out
 
 func time_remaining(key: StringName) -> float:
 	var m := _find_by_key(key)

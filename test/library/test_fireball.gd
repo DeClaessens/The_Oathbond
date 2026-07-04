@@ -71,3 +71,32 @@ func test_fireball_projectile_ignores_its_own_caster():
 
     assert_eq(caster_health.current(), 100.0)
     assert_false(projectile.is_queued_for_deletion())
+
+func test_execute_fails_when_projectile_scene_is_not_assigned():
+    var effect := SpawnProjectileEffect.new()
+
+    var spawn_parent := Node.new()
+    add_child_autofree(spawn_parent)
+
+    var ctx := SkillContext.new()
+    ctx.caster_stats = add_child_autofree(StatsComponent.new())
+    ctx.spawn_parent = spawn_parent
+
+    var ok := effect.execute(ctx)
+
+    assert_false(ok)
+    assert_eq(spawn_parent.get_child_count(), 0)
+    assert_push_error("projectile_scene")
+
+func test_execute_fails_when_spawn_parent_is_null():
+    var skill: Skill = load("res://skills/library/fireball.tres")
+    var effect: SpawnProjectileEffect = skill.effects[0]
+
+    var ctx := SkillContext.new()
+    ctx.caster_stats = add_child_autofree(StatsComponent.new())
+    ctx.spawn_parent = null
+
+    var ok := effect.execute(ctx)
+
+    assert_false(ok)
+    assert_push_error("spawn_parent")

@@ -15,14 +15,22 @@ var slots: Array[AbilitySlot] = []
 func _ready() -> void:
     slots.resize(SLOT_COUNT)
 
+static func _is_valid_slot(index: int) -> bool:
+    return index >= 0 and index < SLOT_COUNT
+
 func equip(skill: Skill, index: int) -> void:
-    assert(index >= 0 and index < SLOT_COUNT, "slot index out of range")
+    if not _is_valid_slot(index):
+        push_error("AbilityComponent.equip: slot index %d out of range" % index)
+        return
     var slot := AbilitySlot.new()
     slot.skill = skill
     slots[index] = slot
     slot_changed.emit(index, skill)
 
 func unequip(index: int) -> void:
+    if not _is_valid_slot(index):
+        push_error("AbilityComponent.unequip: slot index %d out of range" % index)
+        return
     slots[index] = null
     slot_changed.emit(index, null)
 
@@ -36,6 +44,9 @@ func _process(delta: float) -> void:
                 skill_ready.emit(i)
 
 func activate(index: int, aim_point: Vector2 = Vector2.ZERO) -> void:
+    if not _is_valid_slot(index):
+        skill_failed.emit(index, &"invalid_slot")
+        return
     var slot := slots[index]
     if slot == null:
         skill_failed.emit(index, &"empty_slot")
@@ -57,7 +68,9 @@ func activate(index: int, aim_point: Vector2 = Vector2.ZERO) -> void:
     ctx.aim_direction = resolved.aim_direction
 
     for effect in slot.skill.effects:
-        effect.execute(ctx)
+        if not effect.execute(ctx):
+            skill_failed.emit(index, &"effect_failed")
+            return
 
     slot.cooldown_remaining = slot.skill.cooldown
     skill_activated.emit(index, slot.skill)

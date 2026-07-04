@@ -7,18 +7,20 @@ const BACKGROUND := Color(0.5, 0.08, 0.08)
 const FOREGROUND := Color(0.2, 0.85, 0.25)
 
 var _fraction: float = 1.0
+var _bound_health: HealthComponent
 
 func _ready() -> void:
 	position = Vector2(0, -74)
 	visible = false
 
 func bind(health: HealthComponent) -> void:
+	if _bound_health != null and _bound_health.health_changed.is_connected(_on_health_changed):
+		_bound_health.health_changed.disconnect(_on_health_changed)
+	_bound_health = health
 	health.health_changed.connect(_on_health_changed)
 
 func _on_health_changed(current: float, max: float) -> void:
-	print('health changed')
-	if current < max:
-		visible = true
+	visible = current < max
 	_fraction = 0.0 if max <= 0.0 else clampf(current / max, 0.0, 1.0)
 	queue_redraw()
 

@@ -4,10 +4,12 @@ extends GutTest
 class FakeSkillEffect extends SkillEffect:
     var execute_calls := 0
     var last_ctx: SkillContext
+    var succeeds := true
 
-    func execute(ctx: SkillContext) -> void:
+    func execute(ctx: SkillContext) -> bool:
         execute_calls += 1
         last_ctx = ctx
+        return succeeds
 
 
 var caster: Node
@@ -125,6 +127,104 @@ func test_activate_on_cooldown_fails_without_running_effects():
 
     assert_eq(effect.execute_calls, 0)
     assert_signal_emitted_with_parameters(abilities, "skill_failed", [0, &"on_cooldown"])
+
+func test_equip_with_negative_index_is_a_safe_no_op():
+    var abilities := AbilityComponent.new()
+    add_child_autofree(abilities)
+    abilities.equip(Skill.new(), -1)
+    assert_push_error("out of range")
+
+func test_equip_with_index_at_slot_count_is_a_safe_no_op():
+    var abilities := AbilityComponent.new()
+    add_child_autofree(abilities)
+    abilities.equip(Skill.new(), AbilityComponent.SLOT_COUNT)
+    assert_push_error("out of range")
+
+func test_unequip_with_invalid_index_is_a_safe_no_op():
+    var abilities := AbilityComponent.new()
+    add_child_autofree(abilities)
+    abilities.unequip(-1)
+    assert_push_error("out of range")
+
+func test_activate_with_negative_index_fails_with_invalid_slot():
+    var abilities := AbilityComponent.new()
+    abilities.caster = caster
+    add_child_autofree(abilities)
+    add_child_autofree(caster)
+
+    watch_signals(abilities)
+    abilities.activate(-1)
+
+    assert_signal_emitted_with_parameters(abilities, "skill_failed", [-1, &"invalid_slot"])
+
+func test_activate_with_index_at_slot_count_fails_with_invalid_slot():
+    var abilities := AbilityComponent.new()
+    abilities.caster = caster
+    add_child_autofree(abilities)
+    add_child_autofree(caster)
+
+    watch_signals(abilities)
+    abilities.activate(AbilityComponent.SLOT_COUNT)
+
+    assert_signal_emitted_with_parameters(abilities, "skill_failed", [AbilityComponent.SLOT_COUNT, &"invalid_slot"])
+
+func test_activate_with_failing_effect_fails_without_setting_cooldown():
+    var abilities := AbilityComponent.new()
+    abilities.caster = caster
+    add_child_autofree(abilities)
+    add_child_autofree(caster)
+    var skill := _skill_with_targeting(Skill.Targeting.SELF)
+    skill.cooldown = 2.5
+    var effect := FakeSkillEffect.new()
+    effect.succeeds = false
+    skill.effects = [effect] as Array[SkillEffect]
+    abilities.equip(skill, 0)
+
+    watch_signals(abilities)
+    abilities.activate(0)
+
+    assert_eq(abilities.slots[0].cooldown_remaining, 0.0, "cooldown must not be consumed on effect failure")
+    assert_signal_emitted_with_parameters(abilities, "skill_failed", [0, &"effect_failed"])
+    assert_signal_not_emitted(abilities, "skill_activated")
+
+func test_activate_stops_running_effects_after_one_fails():
+    var abilities := AbilityComponent.new()
+    abilities.caster = caster
+    add_child_autofree(abilities)
+    add_child_autofree(caster)
+    var skill := _skill_with_targeting(Skill.Targeting.SELF)
+    var failing := FakeSkillEffect.new()
+    failing.succeeds = false
+    var trailing := FakeSkillEffect.new()
+    skill.effects = [failing, trailing] as Array[SkillEffect]
+    abilities.equip(skill, 0)
+
+    abilities.activate(0)
+
+    assert_eq(trailing.execute_calls, 0, "effects after a failure must not run")
+
+func test_activate_with_unassigned_projectile_scene_does_not_consume_cooldown():
+    var abilities := AbilityComponent.new()
+    abilities.caster = caster
+    add_child_autofree(abilities)
+    add_child_autofree(caster)
+    var caster_stats := StatsComponent.new()
+    caster_stats.name = "StatsComponent"
+    caster.add_child(caster_stats)
+
+    var skill := _skill_with_targeting(Skill.Targeting.AREA)
+    skill.cooldown = 1.0
+    var spawn_effect := SpawnProjectileEffect.new()  # projectile_scene left unassigned
+    skill.effects = [spawn_effect] as Array[SkillEffect]
+    abilities.equip(skill, 0)
+
+    watch_signals(abilities)
+    abilities.activate(0)
+
+    assert_eq(abilities.slots[0].cooldown_remaining, 0.0)
+    assert_signal_emitted_with_parameters(abilities, "skill_failed", [0, &"effect_failed"])
+    assert_signal_not_emitted(abilities, "skill_activated")
+    assert_push_error("projectile_scene")
 
 func test_process_emits_skill_ready_once_cooldown_reaches_zero():
     var abilities := AbilityComponent.new()

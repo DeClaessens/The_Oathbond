@@ -46,3 +46,49 @@ func test_health_changed_emits_current_and_max():
     watch_signals(health)
     health.apply_damage(40.0, StatKeys.DamageType.PHYSICAL, null)
     assert_signal_emitted_with_parameters(health, "health_changed", [60.0, 100.0])
+
+func test_apply_damage_clamps_negative_raw_damage_to_zero():
+    var entity := _make_entity(100.0)
+    var health := HealthComponent.of(entity)
+    health.apply_damage(-30.0, StatKeys.DamageType.PHYSICAL, null)
+    assert_eq(health.current(), 100.0, "negative raw damage must not heal")
+
+func test_apply_damage_clamps_over_reduced_damage_to_zero():
+    # resist clamps to 0.9 in StatsComponent, but simulate an outgoing modifier
+    # that already reduced the raw amount below zero before mitigation.
+    var entity := _make_entity(100.0)
+    var health := HealthComponent.of(entity)
+    health.apply_damage(-1.0, StatKeys.DamageType.PHYSICAL, null)
+    assert_eq(health.current(), 100.0, "over-reduced damage must not heal")
+
+func test_apply_zero_damage_does_not_change_health_or_emit_negative():
+    var entity := _make_entity(100.0)
+    var health := HealthComponent.of(entity)
+    watch_signals(health)
+    health.apply_damage(0.0, StatKeys.DamageType.PHYSICAL, null)
+    assert_eq(health.current(), 100.0)
+    assert_signal_emitted_with_parameters(health, "health_changed", [100.0, 100.0])
+
+func test_damage_dealt_emits_the_entity_root_as_target_not_owner():
+    var entity := _make_entity(100.0)
+    var health := HealthComponent.of(entity)
+    var source := Node.new()
+    add_child_autofree(source)
+    watch_signals(Events)
+    health.apply_damage(30.0, StatKeys.DamageType.PHYSICAL, source)
+    assert_signal_emitted_with_parameters(Events, "damage_dealt", [source, entity, 30, StatKeys.DamageType.PHYSICAL])
+
+func test_ready_with_no_sibling_stats_component_does_not_crash():
+    var entity := Node.new()
+    var health := HealthComponent.new()
+    health.name = "HealthComponent"
+    entity.add_child(health)
+    add_child_autofree(entity)
+
+    assert_push_error("StatsComponent")
+
+func test_apply_damage_before_ready_does_not_crash():
+    var health: HealthComponent = autofree(HealthComponent.new())
+    health.apply_damage(10.0, StatKeys.DamageType.PHYSICAL, null)
+    assert_push_error("StatsComponent")
+    assert_eq(health.current(), 0.0)

@@ -18,6 +18,9 @@ static func of(node: Node) -> HealthComponent:
 
 func _ready() -> void:
 	_stats = StatsComponent.of(get_parent())
+	if _stats == null:
+		push_error("HealthComponent: no sibling StatsComponent found on %s, damage is disabled" % get_parent())
+		return
 	_max = _stats.get_stat(StatKeys.MAX_HEALTH)
 	_current = _max
 	_stats.stat_changed.connect(_on_stat_changed)
@@ -36,10 +39,13 @@ func fraction() -> float:
 	return 0.0 if _max <= 0.0 else clampf(_current / _max, 0.0, 1.0)
 
 func apply_damage(raw: float, type: StatKeys.DamageType, source: Node) -> void:
-	var final_amount := _stats.mitigate_incoming(raw, type)
+	if _stats == null:
+		push_error("HealthComponent.apply_damage: no StatsComponent resolved, ignoring damage")
+		return
+	var final_amount := maxf(0.0, _stats.mitigate_incoming(raw, type))
 	_current = clampf(_current - final_amount, 0.0, _max)
 	health_changed.emit(_current, _max)
-	Events.damage_dealt.emit(source, owner, int(round(final_amount)), type)
+	Events.damage_dealt.emit(source, get_parent(), int(round(final_amount)), type)
 
 func _on_stat_changed(stat: StringName, value: float) -> void:
 	if stat == StatKeys.MAX_HEALTH:

@@ -88,3 +88,81 @@ func test_mitigate_incoming_clamps_resistance_at_0_9():
     }
     # resist clamps to 0.9, so 100 * (1 - 0.9) = 10 damage taken
     assert_almost_eq(stats.mitigate_incoming(100.0, StatKeys.DamageType.PHYSICAL), 10.0, 0.0001)
+
+func _keyed_mod(value: float, duration: float, op: StatModifier.Op = StatModifier.Op.ADD_PCT) -> StatModifier:
+    var mod := StatModifier.new()
+    mod.stat = StatKeys.MOVE_SPEED
+    mod.op = op
+    mod.value = value
+    mod.key = &"buff"
+    mod.duration = duration
+    return mod
+
+func test_refresh_reapply_replaces_value_op_and_duration():
+    stats.base_stats = {StatKeys.MOVE_SPEED: 100.0}
+    stats.add_modifier(_keyed_mod(0.2, 5.0))
+    var replacement := _keyed_mod(0.5, 10.0, StatModifier.Op.MULT_PCT)
+    stats.add_modifier(replacement)
+
+    assert_eq(stats.get_stat(StatKeys.MOVE_SPEED), 150.0, "reapply must use the new modifier's value/op")
+    assert_eq(stats.time_remaining(&"buff"), 10.0, "reapply must refresh duration")
+
+func test_refresh_reapply_updates_source():
+    var first_source := Node.new()
+    var second_source := Node.new()
+    var mod_a := _keyed_mod(0.2, 5.0)
+    mod_a.source = first_source
+    var mod_b := _keyed_mod(0.3, 5.0)
+    mod_b.source = second_source
+    stats.add_modifier(mod_a)
+    stats.add_modifier(mod_b)
+
+    assert_eq(stats._find_by_key(&"buff").source, second_source)
+    first_source.free()
+    second_source.free()
+
+func test_stack_mode_stacks_up_to_max_stacks():
+    stats.base_stats = {StatKeys.MOVE_SPEED: 100.0}
+    for i in 3:
+        var mod := _keyed_mod(0.1, 5.0)
+        mod.stack_mode = StatModifier.StackMode.STACK
+        mod.max_stacks = 3
+        stats.add_modifier(mod)
+
+    # three 10% additive stacks: 100 * (1 + 0.3) = 130
+    assert_eq(stats.get_stat(StatKeys.MOVE_SPEED), 130.0)
+
+func test_stack_mode_does_not_exceed_max_stacks():
+    stats.base_stats = {StatKeys.MOVE_SPEED: 100.0}
+    for i in 5:
+        var mod := _keyed_mod(0.1, 5.0)
+        mod.stack_mode = StatModifier.StackMode.STACK
+        mod.max_stacks = 3
+        stats.add_modifier(mod)
+
+    # capped at 3 stacks regardless of how many times it was applied
+    assert_eq(stats.get_stat(StatKeys.MOVE_SPEED), 130.0)
+
+func test_stack_mode_emits_stat_changed_on_each_application():
+    var mod := _keyed_mod(0.1, 5.0)
+    mod.stack_mode = StatModifier.StackMode.STACK
+    mod.max_stacks = 3
+    watch_signals(stats)
+    stats.add_modifier(mod)
+    assert_signal_emit_count(stats, "stat_changed", 1)
+
+func test_stack_mode_stacks_expire_independently():
+    stats.base_stats = {StatKeys.MOVE_SPEED: 100.0}
+    var mod_a := _keyed_mod(0.1, 1.0)
+    mod_a.stack_mode = StatModifier.StackMode.STACK
+    mod_a.max_stacks = 2
+    var mod_b := _keyed_mod(0.1, 10.0)
+    mod_b.stack_mode = StatModifier.StackMode.STACK
+    mod_b.max_stacks = 2
+    stats.add_modifier(mod_a)
+    stats.add_modifier(mod_b)
+
+    stats._process(1.5)
+
+    # the short-lived stack expired, the long-lived one remains
+    assert_almost_eq(stats.get_stat(StatKeys.MOVE_SPEED), 110.0, 0.0001)

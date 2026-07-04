@@ -39,6 +39,12 @@ func _ready() -> void:
         _slots.append(slot)
 
 func bind(abilities: Node) -> void:
+    if _abilities != null:
+        _abilities.skill_activated.disconnect(_on_skill_activated)
+        _abilities.cooldown_changed.disconnect(_on_cooldown_changed)
+        _abilities.skill_ready.disconnect(_on_skill_ready)
+        _abilities.skill_failed.disconnect(_on_skill_failed)
+        _abilities.slot_changed.disconnect(_on_slot_changed)
     _abilities = abilities
     abilities.skill_activated.connect(_on_skill_activated)
     abilities.cooldown_changed.connect(_on_cooldown_changed)

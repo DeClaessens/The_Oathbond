@@ -6,12 +6,16 @@ extends SkillEffect
 @export var base_damage: int = 50
 @export var damage_type: StatKeys.DamageType = StatKeys.DamageType.FIRE
 
-func execute(ctx: SkillContext) -> void:
+func execute(ctx: SkillContext) -> bool:
     if projectile_scene == null:
-        return
+        push_error("SpawnProjectileEffect: projectile_scene is not assigned")
+        return false
     if ctx.spawn_parent == null:
         push_error("SpawnProjectileEffect: ctx.spawn_parent is null, caster is not in a tree")
-        return
+        return false
+    if ctx.caster_stats == null:
+        push_error("SpawnProjectileEffect: ctx.caster_stats is null, caster has no StatsComponent")
+        return false
 
     var scaled := ctx.caster_stats.scale_outgoing(base_damage, damage_type)
 
@@ -24,3 +28,4 @@ func execute(ctx: SkillContext) -> void:
 
     ctx.spawn_parent.add_child(p)
     p.global_position = ctx.source_position
+    return true

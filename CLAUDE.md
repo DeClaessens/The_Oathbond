@@ -11,3 +11,7 @@ Default label vocabulary — `needs-triage`, `needs-info`, `ready-for-agent`, `r
 ### Domain docs
 
 Single-context layout — one `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
+## Code style
+
+Always use spaces for indentation, never tabs.

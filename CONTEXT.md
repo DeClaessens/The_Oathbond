@@ -62,3 +62,9 @@ _Avoid_: Element, school
 **Resistance**:
 A Stat that reduces incoming damage of one Damage Type, capped so a character is never fully immune.
 _Avoid_: Defense, armor
+
+### Identity
+
+**Faction**:
+The side a character belongs to — Player, Enemy, or Neutral — carried by a `FactionComponent`. Identity only: it says what a character is, not who it's hostile to. Resolving hostility between Factions (e.g. for Ally/Enemy Targeting) is a future target-selection system's job.
+_Avoid_: Team, side (on their own)

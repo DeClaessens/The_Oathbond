@@ -179,7 +179,7 @@ func _on_wedge_draw() -> void:
         return
     var wsize := _wedge.size
     var center := wsize / 2.0
-    var radius := maxf(wsize.x, wsize.y)   # overshoot to cover corners
+    var radius := maxf(wsize.x, wsize.y) / 2   # overshoot to cover corners
     var steps := 48
     var start := -PI / 2.0                 # top
     var end := start + TAU * _fraction     # clockwise

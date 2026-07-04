@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://dd3euuptnoxdy"]
 
 [ext_resource type="PackedScene" uid="uid://cphh21iw50k52" path="res://Floor.tscn" id="2_0xm2m"]
-[ext_resource type="PackedScene" uid="uid://567ev6herjty" path="res://Player.tscn" id="2_h2yge"]
-[ext_resource type="Script" uid="uid://8a10inkl7dra" path="res://main.gd" id="3_main"]
+[ext_resource type="PackedScene" uid="uid://567ev6herjty" path="res://entities/player/Player.tscn" id="2_h2yge"]
+[ext_resource type="Script" uid="uid://bh6mp3segpcbt" path="res://main.gd" id="3_main"]
 [ext_resource type="PackedScene" uid="uid://57fsvgs5asb5" path="res://ui/skill_bar/skill_bar.tscn" id="4_hud"]
 
 [node name="Main" type="Node2D" unique_id=1234891808]

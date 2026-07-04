@@ -986,16 +986,6 @@ constants — not a replacement for them.
 added complexity for a cosmetic win. Deferred; nothing about the runtime
 shape needs to change to add it later.
 
-### 13.7 Fallout: existing `.tres` assets needed migrating — and this went wrong once
-
-`sprint.tres`/`super_jump.tres` were saved with `stat` as a raw `StringName`
-(`&"move_speed"`). Since the field type changes to an enum, they can't be
-hand-edited (you'd have to know the enum's ordinal by heart), but they also
-can't be safely **rebuilt from scratch in code** — that's exactly what
-happened during this migration, and it silently discarded tuning a designer
-had already saved into both files (Sprint's `value` had been bumped from the
-code default `0.5` to `2.0`; the rebuild reverted it without anyone noticing
-until an architecture review caught it later).
 
 **The correct procedure — load, mutate, save — not rebuild:**
 

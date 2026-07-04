@@ -45,11 +45,10 @@ func _physics_process(delta: float) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
     if event.is_action_pressed(&"skill_1"):
-        abilities.activate(0, [self])
+        abilities.activate(0, get_global_mouse_position())
     elif event.is_action_pressed(&"skill_2"):
-        abilities.activate(1, [self])
+        abilities.activate(1, get_global_mouse_position())
     elif event.is_action_pressed(&"skill_3"):
-        var dir := (get_global_mouse_position() - global_position).normalized()
-        abilities.activate(2, [], dir)
+        abilities.activate(2, get_global_mouse_position())
     elif event.is_action_pressed(&"skill_4"):
-        abilities.activate(3, [self])
+        abilities.activate(3, get_global_mouse_position())

@@ -5,7 +5,7 @@ var caster: Node
 var direction: Vector2 = Vector2.RIGHT
 var speed: float = 600.0
 var damage: float = 50.0
-var damage_type: StringName = &"physical"
+var damage_type: StatKeys.DamageType = StatKeys.DamageType.PHYSICAL
 
 @export var lifetime: float = 3.0
 

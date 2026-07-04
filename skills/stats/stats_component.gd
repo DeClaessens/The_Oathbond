@@ -18,8 +18,8 @@ static func of(node: Node) -> StatsComponent:
 func get_stat(stat: StringName) -> float:
 	return _compose(float(base_stats.get(stat, 0.0)), _mods_for(stat))
 
-func scale_outgoing(base: float, type: StringName) -> float:
-	return _compose(base, _mods_for(StatKeys.dmg(type)))
+func scale_outgoing(base: float, type: StatKeys.DamageType) -> float:
+	return _compose(base, _mods_for(StatKeys.dmg(StatKeys.damage_type_name(type))))
 
 func _compose(base: float, mods: Array[StatModifier]) -> float:
 	var flat := 0.0
@@ -89,8 +89,8 @@ func _process(delta: float) -> void:
 		for s in expired_stats:
 			stat_changed.emit(s, get_stat(s))
 
-func apply_damage(raw: float, type: StringName, source: Node) -> void:
-	var resist := clampf(get_stat(StatKeys.resist(type)), 0.0, 0.9)
+func apply_damage(raw: float, type: StatKeys.DamageType, source: Node) -> void:
+	var resist := clampf(get_stat(StatKeys.resist(StatKeys.damage_type_name(type))), 0.0, 0.9)
 	var final_amount := raw * (1.0 - resist)
 	var hp := float(base_stats.get(StatKeys.HEALTH, 0.0))
 	hp = maxf(0.0, hp - final_amount)

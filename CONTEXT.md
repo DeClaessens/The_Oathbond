@@ -24,6 +24,10 @@ _Avoid_: User
 
 **Targeting**:
 The declarative hint on a Skill (Self / Ally / Enemy / Area / None) describing who it's meant to affect. The caller resolves the actual targets; Targeting only describes intent.
+- **Self**: resolves to the caster as the sole target.
+- **Area**: resolves to an aim direction from wherever the caster is pointing (mouse position, stick input); carries no discrete targets.
+- **None**: resolves to no targets and no aim direction — for effects that read neither.
+- **Ally** / **Enemy**: not yet resolvable — there is no target-selection system. A Skill authored with either fails loudly (the caster has no way to find "an ally" or "an enemy" yet) rather than falling back to a guess.
 _Avoid_: Target type
 
 **Known Skill** / **Equipped Skill**:

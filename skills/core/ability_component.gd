@@ -29,7 +29,7 @@ func _process(delta: float) -> void:
             slot.tick(delta)
             cooldown_changed.emit(i, slot.cooldown_remaining, slot.skill.cooldown)
 
-func activate(index: int, targets: Array[Node] = [], direction: Vector2 = Vector2.ZERO) -> void:
+func activate(index: int, aim_point: Vector2 = Vector2.ZERO) -> void:
     var slot := slots[index]
     if slot == null:
         skill_failed.emit(index, &"empty_slot")
@@ -39,15 +39,36 @@ func activate(index: int, targets: Array[Node] = [], direction: Vector2 = Vector
         return
 
     var ctx := SkillContext.new()
-    ctx.targets = targets
-    ctx.aim_direction = direction
     ctx.caster = caster
     ctx.caster_stats = StatsComponent.of(caster)
     if caster is Node2D:
         ctx.source_position = (caster as Node2D).global_position
+    if caster != null and caster.is_inside_tree():
+        ctx.spawn_parent = caster.get_tree().current_scene
+
+    var resolved := _resolve_targeting(slot.skill.targeting, caster, ctx.source_position, aim_point)
+    if not resolved.ok:
+        skill_failed.emit(index, &"unresolvable_targeting")
+        return
+    ctx.targets = resolved.targets
+    ctx.aim_direction = resolved.aim_direction
 
     for effect in slot.skill.effects:
         effect.execute(ctx)
 
     slot.cooldown_remaining = slot.skill.cooldown
     skill_activated.emit(index, slot.skill)
+
+## Pure: no tree access, no side effects besides push_error on an unimplemented mode.
+static func _resolve_targeting(targeting: Skill.Targeting, caster: Node, source_position: Vector2, aim_point: Vector2) -> Dictionary:
+    match targeting:
+        Skill.Targeting.SELF:
+            return {ok = true, targets = [caster] as Array[Node], aim_direction = Vector2.ZERO}
+        Skill.Targeting.AREA:
+            return {ok = true, targets = [] as Array[Node], aim_direction = (aim_point - source_position).normalized()}
+        Skill.Targeting.NONE:
+            return {ok = true, targets = [] as Array[Node], aim_direction = Vector2.ZERO}
+        Skill.Targeting.ENEMY, Skill.Targeting.ALLY:
+            push_error("AbilityComponent: %s targeting has no target-selection system yet" % Skill.Targeting.keys()[targeting])
+            return {ok = false, targets = [] as Array[Node], aim_direction = Vector2.ZERO}
+    return {ok = false, targets = [] as Array[Node], aim_direction = Vector2.ZERO}

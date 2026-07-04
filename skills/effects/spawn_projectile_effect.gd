@@ -9,16 +9,18 @@ extends SkillEffect
 func execute(ctx: SkillContext) -> void:
     if projectile_scene == null:
         return
+    if ctx.spawn_parent == null:
+        push_error("SpawnProjectileEffect: ctx.spawn_parent is null, caster is not in a tree")
+        return
 
-    var type := StatKeys.damage_type_name(damage_type)
-    var scaled := ctx.caster_stats.scale_outgoing(base_damage, type)
+    var scaled := ctx.caster_stats.scale_outgoing(base_damage, damage_type)
 
     var p := projectile_scene.instantiate() as Projectile
     p.caster = ctx.caster
     p.direction = ctx.aim_direction
     p.speed = speed
     p.damage = scaled
-    p.damage_type = type
+    p.damage_type = damage_type
 
-    ctx.caster.get_tree().current_scene.add_child(p)
+    ctx.spawn_parent.add_child(p)
     p.global_position = ctx.source_position

@@ -11,6 +11,7 @@ class FakeAbilities extends Node:
     signal skill_activated(index: int, skill: Skill)
     signal skill_failed(index: int, reason: StringName)
     signal cooldown_changed(index: int, remaining: float, total: float)
+    signal skill_ready(index: int)
     signal slot_changed(index: int, skill: Skill)
 
     const SLOT_COUNT := 4
@@ -76,6 +77,7 @@ func test_cooldown_reaching_zero_reads_ready():
 
     fake.cooldown_changed.emit(0, 5.0, 10.0)
     fake.cooldown_changed.emit(0, 0.0, 10.0)
+    fake.skill_ready.emit(0)
 
     var s := bar._slots[0].state()
     assert_eq(s["fraction"], 0.0)

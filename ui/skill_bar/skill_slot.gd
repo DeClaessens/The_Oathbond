@@ -17,7 +17,6 @@ var index: int = 0
 
 var _filled: bool = false
 var _fraction: float = 0.0
-var _was_cooling: bool = false
 var _base_modulate: Color = Color.WHITE
 var _ready_plays: int = 0
 var _fail_plays: int = 0
@@ -107,10 +106,6 @@ func set_cooldown(remaining: float, total: float) -> void:
     var text := SkillSlot.format_seconds(remaining)
     _seconds.text = text
     _seconds.visible = text != ""
-    var cooling := remaining > 0.0
-    if _was_cooling and not cooling:
-        play_ready()
-    _was_cooling = cooling
 
 ## Optional immediate full wedge on cast; set_cooldown drives the rest.
 func begin_cooldown(total: float) -> void:
@@ -155,7 +150,6 @@ func state() -> Dictionary:
 
 func _clear_cooldown() -> void:
     _fraction = 0.0
-    _was_cooling = false
     if _seconds != null:
         _seconds.text = ""
         _seconds.hide()

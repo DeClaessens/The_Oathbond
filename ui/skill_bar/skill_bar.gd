@@ -42,6 +42,7 @@ func bind(abilities: Node) -> void:
     _abilities = abilities
     abilities.skill_activated.connect(_on_skill_activated)
     abilities.cooldown_changed.connect(_on_cooldown_changed)
+    abilities.skill_ready.connect(_on_skill_ready)
     abilities.skill_failed.connect(_on_skill_failed)
     abilities.slot_changed.connect(_on_slot_changed)
     for i in AbilityComponent.SLOT_COUNT:
@@ -55,6 +56,9 @@ func _on_skill_activated(index: int, skill: Skill) -> void:
 
 func _on_cooldown_changed(index: int, remaining: float, total: float) -> void:
     _slots[index].set_cooldown(remaining, total)
+
+func _on_skill_ready(index: int) -> void:
+    _slots[index].play_ready()
 
 func _on_skill_failed(index: int, _reason: StringName) -> void:
     _slots[index].play_fail()

@@ -125,3 +125,23 @@ func test_activate_on_cooldown_fails_without_running_effects():
 
     assert_eq(effect.execute_calls, 0)
     assert_signal_emitted_with_parameters(abilities, "skill_failed", [0, &"on_cooldown"])
+
+func test_process_emits_skill_ready_once_cooldown_reaches_zero():
+    var abilities := AbilityComponent.new()
+    abilities.caster = caster
+    add_child_autofree(abilities)
+    add_child_autofree(caster)
+    var skill := _skill_with_targeting(Skill.Targeting.SELF)
+    abilities.equip(skill, 0)
+    abilities.slots[0].cooldown_remaining = 0.4
+
+    watch_signals(abilities)
+    abilities._process(0.5)
+
+    assert_signal_emitted_with_parameters(abilities, "cooldown_changed", [0, 0.0, skill.cooldown])
+    assert_signal_emitted_with_parameters(abilities, "skill_ready", [0])
+    assert_signal_emit_count(abilities, "skill_ready", 1)
+
+    abilities._process(0.5)
+
+    assert_signal_emit_count(abilities, "skill_ready", 1, "skill_ready does not re-fire while already ready")

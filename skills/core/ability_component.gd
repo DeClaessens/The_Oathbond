@@ -4,6 +4,7 @@ extends Node
 signal skill_activated(index: int, skill: Skill)
 signal skill_failed(index: int, reason: StringName)
 signal cooldown_changed(index: int, remaining: float, total: float)
+signal skill_ready(index: int)
 signal slot_changed(index: int, skill: Skill)   # skill == null when emptied
 
 const SLOT_COUNT := 4
@@ -31,6 +32,8 @@ func _process(delta: float) -> void:
         if slot != null and slot.cooldown_remaining > 0.0:
             slot.tick(delta)
             cooldown_changed.emit(i, slot.cooldown_remaining, slot.skill.cooldown)
+            if slot.cooldown_remaining <= 0.0:
+                skill_ready.emit(i)
 
 func activate(index: int, aim_point: Vector2 = Vector2.ZERO) -> void:
     var slot := slots[index]

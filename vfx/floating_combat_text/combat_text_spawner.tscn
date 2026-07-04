@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://vfx/floating_combat_text/combat_text_spawner.gd" id="1_spawner"]
+
+[node name="CombatTextSpawner" type="Node"]
+script = ExtResource("1_spawner")

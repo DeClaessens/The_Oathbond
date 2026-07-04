@@ -82,11 +82,9 @@ func test_scale_outgoing_applies_offensive_modifiers_to_skill_base():
     stats.add_modifier(mod)
     assert_eq(stats.scale_outgoing(50.0, StatKeys.DamageType.FIRE), 75.0)
 
-func test_apply_damage_clamps_resistance_at_0_9():
+func test_mitigate_incoming_clamps_resistance_at_0_9():
     stats.base_stats = {
-        StatKeys.HEALTH: 100.0,
         StatKeys.resist(StatKeys.damage_type_name(StatKeys.DamageType.PHYSICAL)): 5.0,
     }
-    stats.apply_damage(100.0, StatKeys.DamageType.PHYSICAL, null)
     # resist clamps to 0.9, so 100 * (1 - 0.9) = 10 damage taken
-    assert_eq(stats.base_stats[StatKeys.HEALTH], 90.0)
+    assert_almost_eq(stats.mitigate_incoming(100.0, StatKeys.DamageType.PHYSICAL), 10.0, 0.0001)

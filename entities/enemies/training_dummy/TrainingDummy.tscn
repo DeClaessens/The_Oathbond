@@ -3,6 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://in2rn1m1q1ge" path="res://icon.svg" id="1_icon"]
 [ext_resource type="Script" uid="uid://b4pbyyq5xdsln" path="res://components/stats/stats_component.gd" id="2_stats"]
 [ext_resource type="Script" uid="uid://3bx2m8mbr6qn" path="res://components/faction/faction_component.gd" id="3_faction"]
+[ext_resource type="Script" path="res://components/health/health_component.gd" id="4_health"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_dummy"]
 size = Vector2(127, 128)
@@ -21,10 +22,12 @@ shape = SubResource("RectangleShape2D_dummy")
 [node name="StatsComponent" type="Node" parent="." unique_id=1612738783]
 script = ExtResource("2_stats")
 base_stats = {
-"health": 999999.0,
-"max_health": 999999.0
+"max_health": 200.0
 }
 
 [node name="FactionComponent" type="Node" parent="." unique_id=810272811]
 script = ExtResource("3_faction")
 faction = 1
+
+[node name="HealthComponent" type="Node2D" parent="."]
+script = ExtResource("4_health")

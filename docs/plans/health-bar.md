@@ -52,27 +52,20 @@ each entity's own scene file. `HealthBar` **does** get its own `.tscn`
 Player.tscn / TrainingDummy.tscn
 ├── ...
 ├── StatsComponent
-└── HealthComponent          # NEW — Node, health_component.gd
+└── HealthComponent          # NEW — Node2D, health_component.gd
      └── HealthBar           # spawned in HealthComponent._ready(), not authored in the .tscn
 ```
 
-**Why a bare script for HealthComponent but a `.tscn` for HealthBar:**
-`HealthComponent` itself needs no children *authored in the scene file* — it
-builds its own child in code — so it stays consistent with the
-no-wrapper-scene convention `StatsComponent`/`FactionComponent` already use.
-`HealthBar` needs its own small scene because that's the natural place to
-hang a script + any future authored properties without inventing a second
-"components sometimes have scenes" convention just for this one node.
-
-**Why HealthBar renders correctly despite HealthComponent being a plain
-`Node`, not a `Node2D`:** Godot's 2D transform inheritance looks up the tree
-for the nearest `CanvasItem` ancestor and skips plain `Node`s in between —
-they don't contribute a transform, but they don't block inheritance either.
-`HealthBar` (a `Node2D`) parented under `HealthComponent` (a `Node`) parented
-under `Player`/`TrainingDummy` (a `CharacterBody2D`) still positions relative
-to the character correctly. This is the same reason `StatsComponent` (a
-plain `Node`) already coexists fine as a sibling of `Icon` (a `Sprite2D`)
-today.
+**Why `HealthComponent` is a `Node2D`, unlike `StatsComponent`/
+`FactionComponent`:** it hosts a `Node2D` child (`HealthBar`) that needs to
+render at the entity's position. Godot's 2D transform inheritance only
+composes through a chain of `CanvasItem` ancestors (`Node2D`/`Control`) — a
+plain `Node` in that chain does **not** get skipped, it makes everything
+below it a top-level canvas item detached from the actual parent's
+transform. (This was tried as a plain `Node` first and the bar rendered in
+the wrong place — corrected here so the mistake doesn't get repeated.)
+`StatsComponent`/`FactionComponent` stay plain `Node`s because neither owns
+a 2D visual, so the distinction doesn't apply to them.
 
 ---
 

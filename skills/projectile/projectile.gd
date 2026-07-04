@@ -22,8 +22,7 @@ func _physics_process(delta: float) -> void:
 func _on_body_entered(body: Node) -> void:
     if body == caster:
         return
-    var stats := StatsComponent.of(body)
-    print(stats)
-    if stats != null:
-        stats.apply_damage(damage, damage_type, caster)
+    var health := HealthComponent.of(body)
+    if health != null:
+        health.apply_damage(damage, damage_type, caster)
     queue_free()

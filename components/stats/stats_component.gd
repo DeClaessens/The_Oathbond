@@ -1,7 +1,7 @@
 class_name StatsComponent
 extends Node
 
-## Temporary stat changes use modifiers, not base_stats (apply_damage excepted).
+## Temporary stat changes use modifiers, not base_stats.
 ## Read get_stat() every frame — do not cache.
 
 @export var base_stats: Dictionary = {}
@@ -89,12 +89,6 @@ func _process(delta: float) -> void:
 		for s in expired_stats:
 			stat_changed.emit(s, get_stat(s))
 
-func apply_damage(raw: float, type: StatKeys.DamageType, source: Node) -> void:
+func mitigate_incoming(raw: float, type: StatKeys.DamageType) -> float:
 	var resist := clampf(get_stat(StatKeys.resist(StatKeys.damage_type_name(type))), 0.0, 0.9)
-	var final_amount := raw * (1.0 - resist)
-	var hp := float(base_stats.get(StatKeys.HEALTH, 0.0))
-	hp = maxf(0.0, hp - final_amount)
-	base_stats[StatKeys.HEALTH] = hp
-	stat_changed.emit(StatKeys.HEALTH, hp)
-	print(source, owner, type)
-	Events.damage_dealt.emit(source, owner, int(round(final_amount)), type)
+	return raw * (1.0 - resist)

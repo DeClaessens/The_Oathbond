@@ -4,13 +4,13 @@
 [ext_resource type="Texture2D" uid="uid://in2rn1m1q1ge" path="res://icon.svg" id="1_xhfnw"]
 [ext_resource type="Script" uid="uid://b4pbyyq5xdsln" path="res://components/stats/stats_component.gd" id="2_stats"]
 [ext_resource type="Script" uid="uid://cp2rikhckvi5e" path="res://skills/core/ability_component.gd" id="3_abilities"]
+[ext_resource type="Script" uid="uid://c2ij8xxbj8p3l" path="res://components/health/health_component.gd" id="4_health"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_eae6q"]
 size = Vector2(127, 128)
 
 [node name="Player" type="CharacterBody2D" unique_id=17166481]
 collision_layer = 2
-collision_mask = 1
 script = ExtResource("1_kpjcp")
 
 [node name="Icon" type="Sprite2D" parent="." unique_id=1187038908]
@@ -21,14 +21,16 @@ texture = ExtResource("1_xhfnw")
 position = Vector2(-0.5, 0)
 shape = SubResource("RectangleShape2D_eae6q")
 
-[node name="StatsComponent" type="Node" parent="."]
+[node name="StatsComponent" type="Node" parent="." unique_id=2050525787]
 script = ExtResource("2_stats")
 base_stats = {
-"health": 100.0,
 "jump_velocity": 800.0,
 "max_health": 100.0,
 "move_speed": 400.0
 }
 
-[node name="AbilityComponent" type="Node" parent="."]
+[node name="AbilityComponent" type="Node" parent="." unique_id=378621890]
 script = ExtResource("3_abilities")
+
+[node name="HealthComponent" type="Node2D" parent="." unique_id=1362249455]
+script = ExtResource("4_health")

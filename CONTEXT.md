@@ -41,7 +41,7 @@ _Avoid_: Hotbar, action bar, ability bar
 ### Stats & modifiers
 
 **Stat**:
-A named numeric attribute of a character (e.g. move speed, health) produced by composing a base value with any active Modifiers.
+A named numeric attribute of a character (e.g. move speed, max health) produced by composing a base value with any active Modifiers. Recomputed fresh from base + active Modifiers every time it's read — it has no memory of its own. Contrast with a Resource Pool.
 _Avoid_: Attribute, property
 
 **Modifier**:
@@ -62,3 +62,33 @@ _Avoid_: Element, school
 **Resistance**:
 A Stat that reduces incoming damage of one Damage Type, capped so a character is never fully immune.
 _Avoid_: Defense, armor
+
+### Identity
+
+**Faction**:
+The side a character belongs to — Player, Enemy, or Neutral — carried by a `FactionComponent`. Identity only: it says what a character is, not who it's hostile to. Resolving hostility between Factions (e.g. for Ally/Enemy Targeting) is a future target-selection system's job.
+_Avoid_: Team, side (on their own)
+
+### Composition
+
+**Component**:
+A node attached to a character that gives it one capability — numeric attributes (`StatsComponent`), side/identity (`FactionComponent`), or a Health readout (`HealthComponent`). Most Components own the data for their capability outright; `HealthComponent` is the exception — it owns no data itself and instead orchestrates a Resource Pool that lives elsewhere plus the view that renders it. Characters are assembled from Components rather than subclassed by type — see ADR-0007.
+_Avoid_: System (too broad), Manager
+
+### Health & combat feedback
+
+**Resource Pool**:
+A stateful, depletable/restorable quantity bounded by a maximum, unlike a Stat it persists across frames instead of being recomputed fresh from Modifiers each time it's read. Health is the first Resource Pool in the game — see ADR-0009 for why it isn't a Stat despite living alongside them for a while.
+_Avoid_: Stat (for anything with memory or depletion)
+
+**Health**:
+A character's current hit points — a Resource Pool owned by `HealthComponent`, bounded by the `Max Health` Stat (itself still composed from base + Modifiers, so a future Vitality-style buff can raise the ceiling). Clamped to 0 on defeat; no death handling exists yet.
+_Avoid_: HP as a Stat, Hit Points
+
+**Health Bar**:
+The on-screen readout of a character's Health — a bar that starts full green, with red revealed from the right as Health drops. Purely presentational: it renders whatever `HealthComponent` reports and owns no state of its own.
+_Avoid_: HP bar
+
+**Floating Combat Text**:
+A short-lived number that appears at a character's position when a hit lands, drifts upward, and fades — each hit spawns its own independent instance. Triggered globally off `Events.damage_dealt`, not owned by or bound to any single entity.
+_Avoid_: Hitsplat, damage number, damage popup

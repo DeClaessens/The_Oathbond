@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="Skill" format=3]
+
+[ext_resource type="Script" uid="uid://x7ohp52w0au8" path="res://skills/core/skill_effect.gd" id="1_effect"]
+[ext_resource type="Script" uid="uid://cqe08rf5qjagj" path="res://skills/effects/spawn_projectile_effect.gd" id="2_spawn"]
+[ext_resource type="Script" uid="uid://cx2o300duwfpu" path="res://skills/core/skill.gd" id="3_skill"]
+[ext_resource type="PackedScene" uid="uid://c8p7q2x4vnw6h" path="res://skills/projectile/projectile.tscn" id="4_proj"]
+
+[sub_resource type="Resource" id="Resource_fireball_spawn"]
+script = ExtResource("2_spawn")
+projectile_scene = ExtResource("4_proj")
+speed = 600.0
+base_damage = 50
+damage_type = 1
+
+[resource]
+script = ExtResource("3_skill")
+id = &"fireball"
+display_name = "Fireball"
+description = "Launches a bolt of fire that deals damage on impact."
+cooldown = 0.5
+targeting = 3
+effects = Array[ExtResource("1_effect")]([SubResource("Resource_fireball_spawn")])

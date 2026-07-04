@@ -96,4 +96,5 @@ func apply_damage(raw: float, type: StatKeys.DamageType, source: Node) -> void:
 	hp = maxf(0.0, hp - final_amount)
 	base_stats[StatKeys.HEALTH] = hp
 	stat_changed.emit(StatKeys.HEALTH, hp)
+	print(source, owner, type)
 	Events.damage_dealt.emit(source, owner, int(round(final_amount)), type)

@@ -11,6 +11,10 @@ var damage_type: StatKeys.DamageType = StatKeys.DamageType.PHYSICAL
 
 func _ready() -> void:
     get_tree().create_timer(lifetime).timeout.connect(queue_free)
+    queue_redraw()
+
+func _draw() -> void:
+    draw_circle(Vector2.ZERO, 8.0, Color.ORANGE_RED)
 
 func _physics_process(delta: float) -> void:
     position += direction * speed * delta
@@ -19,6 +23,7 @@ func _on_body_entered(body: Node) -> void:
     if body == caster:
         return
     var stats := StatsComponent.of(body)
+    print(stats)
     if stats != null:
         stats.apply_damage(damage, damage_type, caster)
     queue_free()

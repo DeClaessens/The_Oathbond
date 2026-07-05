@@ -79,7 +79,7 @@ _Avoid_: System (too broad), Manager
 ### Health & combat feedback
 
 **Resource Pool**:
-A stateful, depletable/restorable quantity bounded by a maximum, unlike a Stat it persists across frames instead of being recomputed fresh from Modifiers each time it's read. Health is the first Resource Pool in the game — see ADR-0009 for why it isn't a Stat despite living alongside them for a while.
+A stateful, depletable/restorable quantity bounded by a maximum, unlike a Stat it persists across frames instead of being recomputed fresh from Modifiers each time it's read. Health and Mana are the game's Resource Pools — see ADR-0009 for why a Resource Pool isn't a Stat despite living alongside them for a while.
 _Avoid_: Stat (for anything with memory or depletion)
 
 **Health**:
@@ -89,6 +89,14 @@ _Avoid_: HP as a Stat, Hit Points
 **Health Bar**:
 The on-screen readout of a character's Health — a bar that starts full green, with red revealed from the right as Health drops. Purely presentational: it renders whatever `HealthComponent` reports and owns no state of its own.
 _Avoid_: HP bar
+
+**Mana**:
+A character's casting resource, spent to activate Skills that carry a mana cost — a Resource Pool owned by `ManaComponent`, bounded by the `Max Mana` Stat and replenished continuously at the `Mana Regen` Stat's rate. A caster with no `ManaComponent` has unlimited Mana rather than failing every cast — see ADR-0010.
+_Avoid_: MP, magic points, energy
+
+**Mana Bar**:
+The on-screen readout of a character's Mana — a bar stacked directly beneath the Health Bar, always visible since Mana depletes routinely during normal play (unlike the Health Bar, which stays hidden until the first hit). Purely presentational, same role as Health Bar.
+_Avoid_: MP bar
 
 **Floating Combat Text**:
 A short-lived number that appears at a character's position when a hit lands, drifts upward, and fades — each hit spawns its own independent instance. Triggered globally off `Events.damage_dealt`, not owned by or bound to any single entity.

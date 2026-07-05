@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://components/mana/mana_bar.gd" id="1_bar"]
+
+[node name="ManaBar" type="Node2D"]
+script = ExtResource("1_bar")

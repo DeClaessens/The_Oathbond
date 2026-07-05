@@ -14,4 +14,5 @@ id = &"sprint"
 display_name = "Sprint"
 description = "Move faster for a short time."
 cooldown = 20.0
+mana_cost = 10.0
 effects = Array[ExtResource("1_bdqra")]([SubResource("Resource_8kd34")])

@@ -19,7 +19,7 @@ static func of(node: Node) -> ManaComponent:
 func _ready() -> void:
     _stats = StatsComponent.of(get_parent())
     if _stats == null:
-        push_error("ManaComponent: no sibling StatsComponent found on %s, casting is unconstrained" % get_parent())
+        push_error("ManaComponent: no sibling StatsComponent found on %s, mana pool is malformed (max mana 0.0, regen disabled)" % get_parent())
         return
     _max = _stats.get_stat(StatKeys.MAX_MANA)
     _current = _max

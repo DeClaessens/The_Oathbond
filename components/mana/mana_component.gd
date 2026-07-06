@@ -45,6 +45,10 @@ func spend(amount: float) -> void:
     _current = clampf(_current - amount, 0.0, _max)
     mana_changed.emit(_current, _max)
 
+func restore_full() -> void:
+    _current = _max
+    mana_changed.emit(_current, _max)
+
 func _process(delta: float) -> void:
     if _stats == null or _current >= _max:
         return

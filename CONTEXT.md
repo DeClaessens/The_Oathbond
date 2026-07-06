@@ -83,8 +83,12 @@ A stateful, depletable/restorable quantity bounded by a maximum, unlike a Stat i
 _Avoid_: Stat (for anything with memory or depletion)
 
 **Health**:
-A character's current hit points — a Resource Pool owned by `HealthComponent`, bounded by the `Max Health` Stat (itself still composed from base + Modifiers, so a future Vitality-style buff can raise the ceiling). Clamped to 0 on defeat; no death handling exists yet.
+A character's current hit points — a Resource Pool owned by `HealthComponent`, bounded by the `Max Health` Stat (itself still composed from base + Modifiers, so a future Vitality-style buff can raise the ceiling). Clamped to 0 on defeat, which triggers Death.
 _Avoid_: HP as a Stat, Hit Points
+
+**Death**:
+The latched transition of a character's Health to 0. `HealthComponent` detects and announces it (a local `died` signal plus the cross-cutting `Events.character_died` carrying victim and killer); what happens next is the character's own composed-in response — enemies despawn via `DespawnOnDeathComponent`, the player respawns at their spawn point with both Resource Pools restored. Once dead, further damage is ignored until `restore_full()` clears the latch — see ADR-0012.
+_Avoid_: Kill/destroy (as system verbs), defeat (for the mechanical state)
 
 **Health Bar**:
 The on-screen readout of a character's Health — a bar that starts full green, with red revealed from the right as Health drops. Purely presentational: it renders whatever `HealthComponent` reports and owns no state of its own.

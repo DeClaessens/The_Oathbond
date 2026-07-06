@@ -4,6 +4,7 @@
 [ext_resource type="Script" uid="uid://b4pbyyq5xdsln" path="res://components/stats/stats_component.gd" id="2_stats"]
 [ext_resource type="Script" uid="uid://3bx2m8mbr6qn" path="res://components/faction/faction_component.gd" id="3_faction"]
 [ext_resource type="Script" path="res://components/health/health_component.gd" id="4_health"]
+[ext_resource type="Script" path="res://components/death/despawn_on_death_component.gd" id="5_despawn"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_dummy"]
 size = Vector2(127, 128)
@@ -31,3 +32,6 @@ faction = 1
 
 [node name="HealthComponent" type="Node2D" parent="."]
 script = ExtResource("4_health")
+
+[node name="DespawnOnDeathComponent" type="Node" parent="."]
+script = ExtResource("5_despawn")

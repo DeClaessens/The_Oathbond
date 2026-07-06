@@ -89,3 +89,49 @@ func test_apply_damage_before_ready_does_not_crash():
     health.apply_damage(10.0, StatKeys.DamageType.PHYSICAL, null)
     assert_push_error("StatsComponent")
     assert_eq(health.current(), 0.0)
+
+func test_lethal_damage_emits_died():
+    var entity := _make_entity(50.0)
+    var health := HealthComponent.of(entity)
+    watch_signals(health)
+    health.apply_damage(50.0, StatKeys.DamageType.PHYSICAL, null)
+    assert_signal_emitted(health, "died")
+    assert_true(health.is_dead())
+
+func test_non_lethal_damage_does_not_emit_died():
+    var entity := _make_entity(50.0)
+    var health := HealthComponent.of(entity)
+    watch_signals(health)
+    health.apply_damage(49.0, StatKeys.DamageType.PHYSICAL, null)
+    assert_signal_not_emitted(health, "died")
+    assert_false(health.is_dead())
+
+func test_damage_after_death_is_ignored_and_died_emits_once():
+    var entity := _make_entity(50.0)
+    var health := HealthComponent.of(entity)
+    watch_signals(health)
+    health.apply_damage(999.0, StatKeys.DamageType.PHYSICAL, null)
+    health.apply_damage(10.0, StatKeys.DamageType.PHYSICAL, null)
+    assert_signal_emit_count(health, "died", 1)
+    assert_signal_emit_count(health, "health_changed", 1, "damage on a dead character must not re-emit health_changed")
+    assert_eq(health.current(), 0.0)
+
+func test_lethal_damage_emits_character_died_with_victim_and_killer():
+    var entity := _make_entity(50.0)
+    var health := HealthComponent.of(entity)
+    var killer := Node.new()
+    add_child_autofree(killer)
+    watch_signals(Events)
+    health.apply_damage(50.0, StatKeys.DamageType.PHYSICAL, killer)
+    assert_signal_emitted_with_parameters(Events, "character_died", [entity, killer])
+
+func test_restore_full_resets_health_and_death_state():
+    var entity := _make_entity(50.0)
+    var health := HealthComponent.of(entity)
+    health.apply_damage(999.0, StatKeys.DamageType.PHYSICAL, null)
+    health.restore_full()
+    assert_eq(health.current(), 50.0)
+    assert_false(health.is_dead())
+    watch_signals(health)
+    health.apply_damage(999.0, StatKeys.DamageType.PHYSICAL, null)
+    assert_signal_emitted(health, "died", "a restored character must be able to die again")

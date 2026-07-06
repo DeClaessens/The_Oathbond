@@ -3,6 +3,7 @@ extends CharacterBody2D
 
 @onready var stats: StatsComponent = $StatsComponent
 @onready var abilities: AbilityComponent = $AbilityComponent
+@onready var health: HealthComponent = $HealthComponent
 
 var gravity: int = ProjectSettings.get_setting("physics/2d/default_gravity")
 
@@ -10,9 +11,12 @@ var gravity: int = ProjectSettings.get_setting("physics/2d/default_gravity")
 signal skill_learned(skill: Skill)
 
 var known_skills: Array[Skill] = []
+var _spawn_point: Vector2
 
 func _ready() -> void:
     abilities.caster = self
+    _spawn_point = global_position
+    health.died.connect(_respawn)
 
     var sprint: Skill = load("res://skills/library/sprint.tres")
     var super_jump: Skill = load("res://skills/library/super_jump.tres")
@@ -29,6 +33,16 @@ func learn_skill(skill: Skill) -> void:
         return
     known_skills.append(skill)
     skill_learned.emit(skill)
+
+## Death response (ADR-0012). No death penalty yet -- an open question in
+## docs/VISION.md, revisited once Oaths exist.
+func _respawn() -> void:
+    global_position = _spawn_point
+    velocity = Vector2.ZERO
+    health.restore_full()
+    var mana := ManaComponent.of(self)
+    if mana != null:
+        mana.restore_full()
 
 func _physics_process(delta: float) -> void:
     if not is_on_floor():

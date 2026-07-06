@@ -78,3 +78,10 @@ func test_ready_with_no_sibling_stats_component_does_not_crash():
     assert_eq(mana.current(), 0.0)
     assert_eq(mana.max_mana(), 0.0)
     assert_false(mana.can_afford(1.0))
+
+func test_restore_full_refills_current_mana():
+    var entity := _make_entity(100.0)
+    var mana := ManaComponent.of(entity)
+    mana.spend(60.0)
+    mana.restore_full()
+    assert_eq(mana.current(), 100.0)

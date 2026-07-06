@@ -87,7 +87,7 @@ A character's current hit points — a Resource Pool owned by `HealthComponent`,
 _Avoid_: HP as a Stat, Hit Points
 
 **Death**:
-The latched transition of a character's Health to 0. `HealthComponent` detects and announces it (a local `died` signal plus the cross-cutting `Events.character_died` carrying victim and killer); what happens next is the character's own composed-in response — enemies despawn via `DespawnOnDeathComponent`, the player respawns at their spawn point with both Resource Pools restored. Once dead, further damage is ignored until `restore_full()` clears the latch — see ADR-0012.
+The latched transition of a character's Health to 0. `HealthComponent` detects and announces it (a local `died` signal plus the cross-cutting `Events.character_died` carrying victim and killer); what happens next is the character's own composed-in response — enemies despawn via `DespawnOnDeathComponent`. The player has no death response yet. Once dead, further damage is ignored until `restore_full()` clears the latch — see ADR-0012.
 _Avoid_: Kill/destroy (as system verbs), defeat (for the mechanical state)
 
 **Health Bar**:

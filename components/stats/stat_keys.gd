@@ -9,12 +9,10 @@ const MAX_HEALTH    := &"max_health"
 const MAX_MANA      := &"max_mana"
 const MANA_REGEN    := &"mana_regen"
 
-## Reserved for M2 (docs/design/stats-and-gear.md) — keys exist so affixes
-## and buffs can be authored; nothing reads them until the M2 damage-pipeline
-## and regen work lands.
+## Reserved for M2 — see docs/design/stats-and-gear.md
 const HEALTH_REGEN        := &"health_regen"
-const CRIT_CHANCE         := &"crit_chance"          ## design base: 0.05
-const CRIT_MULTI          := &"crit_multi"           ## design base: 1.5
+const CRIT_CHANCE         := &"crit_chance"
+const CRIT_MULTI          := &"crit_multi"
 const COOLDOWN_REDUCTION  := &"cooldown_reduction"
 const MANA_COST_REDUCTION := &"mana_cost_reduction"
 
@@ -40,8 +38,7 @@ enum Stat {
     MANA_COST_REDUCTION,
 }
 
-## Append-only — .tres files store these as ints (ADR-0005). EMBER kept
-## FIRE's slot in the 2026-07-06 rename, so pre-rename assets stay valid.
+## Append-only — .tres files store these as ints (ADR-0005).
 enum DamageType {
     PHYSICAL,
     EMBER,
@@ -62,10 +59,10 @@ static func to_stringname(stat: Stat, damage_type: DamageType) -> StringName:
         Stat.RESISTANCE:      return resist(damage_type_name(damage_type))
         Stat.MAX_MANA:        return MAX_MANA
         Stat.MANA_REGEN:      return MANA_REGEN
-        Stat.HEALTH_REGEN:        return HEALTH_REGEN
-        Stat.CRIT_CHANCE:         return CRIT_CHANCE
-        Stat.CRIT_MULTI:          return CRIT_MULTI
-        Stat.COOLDOWN_REDUCTION:  return COOLDOWN_REDUCTION
+        Stat.HEALTH_REGEN: return HEALTH_REGEN
+        Stat.CRIT_CHANCE: return CRIT_CHANCE
+        Stat.CRIT_MULTI: return CRIT_MULTI
+        Stat.COOLDOWN_REDUCTION: return COOLDOWN_REDUCTION
         Stat.MANA_COST_REDUCTION: return MANA_COST_REDUCTION
     return &""
 

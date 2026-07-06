@@ -4,9 +4,6 @@ extends Node2D
 ## Owns the current-HP Resource Pool. Max Health is still a Stat on the
 ## sibling StatsComponent -- resolved once at _ready() and re-read from
 ## stat_changed if it ever moves (e.g. a future Max Health buff).
-##
-## Detects and announces Death (the transition to 0); the response is the
-## character's own job -- see ADR-0012.
 
 signal health_changed(current: float, max: float)
 signal died

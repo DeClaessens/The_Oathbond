@@ -1,10 +1,6 @@
 class_name DespawnOnDeathComponent
 extends Node
 
-## The enemy-flavored Death response: removes the owning character from the
-## tree when the sibling HealthComponent announces death. Detection stays on
-## HealthComponent -- see ADR-0012.
-
 func _ready() -> void:
     var health := HealthComponent.of(get_parent())
     if health == null:

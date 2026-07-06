@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://b4pbyyq5xdsln" path="res://components/stats/stats_component.gd" id="2_stats"]
 [ext_resource type="Script" uid="uid://cp2rikhckvi5e" path="res://skills/core/ability_component.gd" id="3_abilities"]
 [ext_resource type="Script" uid="uid://c2ij8xxbj8p3l" path="res://components/health/health_component.gd" id="4_health"]
+[ext_resource type="Script" path="res://components/mana/mana_component.gd" id="5_mana"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_eae6q"]
 size = Vector2(127, 128)
@@ -26,6 +27,8 @@ script = ExtResource("2_stats")
 base_stats = {
 "jump_velocity": 800.0,
 "max_health": 100.0,
+"max_mana": 100.0,
+"mana_regen": 10.0,
 "move_speed": 400.0
 }
 
@@ -34,3 +37,6 @@ script = ExtResource("3_abilities")
 
 [node name="HealthComponent" type="Node2D" parent="." unique_id=1362249455]
 script = ExtResource("4_health")
+
+[node name="ManaComponent" type="Node2D" parent="."]
+script = ExtResource("5_mana")

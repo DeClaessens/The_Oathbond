@@ -52,6 +52,9 @@ func activate(index: int, aim_point: Vector2 = Vector2.ZERO) -> void:
         skill_failed.emit(index, &"empty_slot")
         return
 
+    var mana := ManaComponent.of(caster)
+    var has_enough_mana := mana == null or mana.can_afford(slot.skill.mana_cost)
+
     var ctx := SkillContext.new()
     ctx.caster = caster
     ctx.caster_stats = StatsComponent.of(caster)
@@ -60,7 +63,7 @@ func activate(index: int, aim_point: Vector2 = Vector2.ZERO) -> void:
     if caster != null and caster.is_inside_tree():
         ctx.spawn_parent = caster.get_tree().current_scene
 
-    var resolved := _resolve_activation(slot.skill, slot.is_ready(), caster, ctx.source_position, aim_point)
+    var resolved := _resolve_activation(slot.skill, slot.is_ready(), has_enough_mana, caster, ctx.source_position, aim_point)
     if not resolved.ok:
         skill_failed.emit(index, resolved.failure_reason)
         return
@@ -73,11 +76,15 @@ func activate(index: int, aim_point: Vector2 = Vector2.ZERO) -> void:
             return
 
     slot.cooldown_remaining = slot.skill.cooldown
+    if mana != null:
+        mana.spend(slot.skill.mana_cost)
     skill_activated.emit(index, slot.skill)
 
-static func _resolve_activation(skill: Skill, is_ready: bool, caster: Node, source_position: Vector2, aim_point: Vector2) -> Dictionary:
+static func _resolve_activation(skill: Skill, is_ready: bool, has_enough_mana: bool, caster: Node, source_position: Vector2, aim_point: Vector2) -> Dictionary:
     if not is_ready:
         return {ok = false, failure_reason = &"on_cooldown", targets = [] as Array[Node], aim_direction = Vector2.ZERO}
+    if not has_enough_mana:
+        return {ok = false, failure_reason = &"insufficient_mana", targets = [] as Array[Node], aim_direction = Vector2.ZERO}
     match skill.targeting:
         Skill.Targeting.SELF:
             return {ok = true, failure_reason = &"", targets = [caster] as Array[Node], aim_direction = Vector2.ZERO}

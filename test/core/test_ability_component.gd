@@ -26,42 +26,53 @@ func _skill_with_targeting(targeting: Skill.Targeting) -> Skill:
 
 func test_self_targeting_targets_the_caster():
     var skill := _skill_with_targeting(Skill.Targeting.SELF)
-    var result := AbilityComponent._resolve_activation(skill, true, caster, Vector2.ZERO, Vector2.ZERO)
+    var result := AbilityComponent._resolve_activation(skill, true, true, caster, Vector2.ZERO, Vector2.ZERO)
     assert_true(result.ok)
     assert_eq(result.targets, [caster] as Array[Node])
 
 func test_area_targeting_derives_direction_from_aim_point():
     var skill := _skill_with_targeting(Skill.Targeting.AREA)
-    var result := AbilityComponent._resolve_activation(skill, true, caster, Vector2.ZERO, Vector2(10, 0))
+    var result := AbilityComponent._resolve_activation(skill, true, true, caster, Vector2.ZERO, Vector2(10, 0))
     assert_true(result.ok)
     assert_eq(result.targets, [] as Array[Node])
     assert_eq(result.aim_direction, Vector2.RIGHT)
 
 func test_none_targeting_resolves_to_nothing():
     var skill := _skill_with_targeting(Skill.Targeting.NONE)
-    var result := AbilityComponent._resolve_activation(skill, true, caster, Vector2.ZERO, Vector2(5, 5))
+    var result := AbilityComponent._resolve_activation(skill, true, true, caster, Vector2.ZERO, Vector2(5, 5))
     assert_true(result.ok)
     assert_eq(result.targets, [] as Array[Node])
     assert_eq(result.aim_direction, Vector2.ZERO)
 
 func test_enemy_targeting_fails_with_no_target_selection_system():
     var skill := _skill_with_targeting(Skill.Targeting.ENEMY)
-    var result := AbilityComponent._resolve_activation(skill, true, caster, Vector2.ZERO, Vector2.ZERO)
+    var result := AbilityComponent._resolve_activation(skill, true, true, caster, Vector2.ZERO, Vector2.ZERO)
     assert_false(result.ok)
     assert_eq(result.failure_reason, &"unresolvable_targeting")
     assert_push_error("ENEMY")
 
 func test_ally_targeting_fails_with_no_target_selection_system():
     var skill := _skill_with_targeting(Skill.Targeting.ALLY)
-    var result := AbilityComponent._resolve_activation(skill, true, caster, Vector2.ZERO, Vector2.ZERO)
+    var result := AbilityComponent._resolve_activation(skill, true, true, caster, Vector2.ZERO, Vector2.ZERO)
     assert_false(result.ok)
     assert_eq(result.failure_reason, &"unresolvable_targeting")
     assert_push_error("ALLY")
 
 func test_on_cooldown_fails_before_targeting_is_considered():
     var skill := _skill_with_targeting(Skill.Targeting.SELF)
-    var result := AbilityComponent._resolve_activation(skill, false, caster, Vector2.ZERO, Vector2.ZERO)
+    var result := AbilityComponent._resolve_activation(skill, false, true, caster, Vector2.ZERO, Vector2.ZERO)
     assert_false(result.ok)
+    assert_eq(result.failure_reason, &"on_cooldown")
+
+func test_insufficient_mana_fails_before_targeting_is_considered():
+    var skill := _skill_with_targeting(Skill.Targeting.SELF)
+    var result := AbilityComponent._resolve_activation(skill, true, false, caster, Vector2.ZERO, Vector2.ZERO)
+    assert_false(result.ok)
+    assert_eq(result.failure_reason, &"insufficient_mana")
+
+func test_on_cooldown_takes_priority_over_insufficient_mana():
+    var skill := _skill_with_targeting(Skill.Targeting.SELF)
+    var result := AbilityComponent._resolve_activation(skill, false, false, caster, Vector2.ZERO, Vector2.ZERO)
     assert_eq(result.failure_reason, &"on_cooldown")
 
 func test_equip_emits_slot_changed_with_the_skill():
@@ -224,6 +235,95 @@ func test_activate_with_unassigned_projectile_scene_does_not_consume_cooldown():
     assert_signal_emitted_with_parameters(abilities, "skill_failed", [0, &"effect_failed"])
     assert_signal_not_emitted(abilities, "skill_activated")
     assert_push_error("projectile_scene")
+
+func test_activate_with_no_mana_component_casts_for_free():
+    var abilities := AbilityComponent.new()
+    abilities.caster = caster
+    add_child_autofree(abilities)
+    add_child_autofree(caster)
+    var skill := _skill_with_targeting(Skill.Targeting.SELF)
+    skill.mana_cost = 9999.0
+    var effect := FakeSkillEffect.new()
+    skill.effects = [effect] as Array[SkillEffect]
+    abilities.equip(skill, 0)
+
+    watch_signals(abilities)
+    abilities.activate(0)
+
+    assert_eq(effect.execute_calls, 1)
+    assert_signal_emitted(abilities, "skill_activated")
+
+func test_activate_fails_and_does_not_run_effects_when_mana_is_insufficient():
+    var abilities := AbilityComponent.new()
+    abilities.caster = caster
+    add_child_autofree(abilities)
+    var mana := ManaComponent.new()
+    mana.name = "ManaComponent"
+    var caster_stats := StatsComponent.new()
+    caster_stats.name = "StatsComponent"
+    caster_stats.base_stats = {StatKeys.MAX_MANA: 10.0}
+    caster.add_child(caster_stats)
+    caster.add_child(mana)
+    add_child_autofree(caster)
+
+    var skill := _skill_with_targeting(Skill.Targeting.SELF)
+    skill.mana_cost = 20.0
+    var effect := FakeSkillEffect.new()
+    skill.effects = [effect] as Array[SkillEffect]
+    abilities.equip(skill, 0)
+
+    watch_signals(abilities)
+    abilities.activate(0)
+
+    assert_eq(effect.execute_calls, 0)
+    assert_signal_emitted_with_parameters(abilities, "skill_failed", [0, &"insufficient_mana"])
+
+func test_activate_debits_mana_only_after_effects_succeed():
+    var abilities := AbilityComponent.new()
+    abilities.caster = caster
+    add_child_autofree(abilities)
+    var mana := ManaComponent.new()
+    mana.name = "ManaComponent"
+    var caster_stats := StatsComponent.new()
+    caster_stats.name = "StatsComponent"
+    caster_stats.base_stats = {StatKeys.MAX_MANA: 100.0}
+    caster.add_child(caster_stats)
+    caster.add_child(mana)
+    add_child_autofree(caster)
+
+    var skill := _skill_with_targeting(Skill.Targeting.SELF)
+    skill.mana_cost = 30.0
+    var failing := FakeSkillEffect.new()
+    failing.succeeds = false
+    skill.effects = [failing] as Array[SkillEffect]
+    abilities.equip(skill, 0)
+
+    abilities.activate(0)
+
+    assert_eq(mana.current(), 100.0, "mana must not be spent when a cast fails")
+
+func test_activate_debits_mana_on_successful_cast():
+    var abilities := AbilityComponent.new()
+    abilities.caster = caster
+    add_child_autofree(abilities)
+    var mana := ManaComponent.new()
+    mana.name = "ManaComponent"
+    var caster_stats := StatsComponent.new()
+    caster_stats.name = "StatsComponent"
+    caster_stats.base_stats = {StatKeys.MAX_MANA: 100.0}
+    caster.add_child(caster_stats)
+    caster.add_child(mana)
+    add_child_autofree(caster)
+
+    var skill := _skill_with_targeting(Skill.Targeting.SELF)
+    skill.mana_cost = 30.0
+    var effect := FakeSkillEffect.new()
+    skill.effects = [effect] as Array[SkillEffect]
+    abilities.equip(skill, 0)
+
+    abilities.activate(0)
+
+    assert_eq(mana.current(), 70.0)
 
 func test_process_emits_skill_ready_once_cooldown_reaches_zero():
     var abilities := AbilityComponent.new()

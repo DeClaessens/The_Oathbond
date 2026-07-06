@@ -18,5 +18,6 @@ id = &"fireball"
 display_name = "Fireball"
 description = "Launches a bolt of fire that deals damage on impact."
 cooldown = 0.5
+mana_cost = 20.0
 targeting = 3
 effects = Array[ExtResource("1_effect")]([SubResource("Resource_fireball_spawn")])

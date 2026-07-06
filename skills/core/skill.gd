@@ -9,7 +9,7 @@ enum Targeting { SELF, ALLY, ENEMY, AREA, NONE }
 @export_multiline var description: String
 
 @export var cooldown: float = 1.0
-@export var resource_cost: int = 0
+@export var mana_cost: float = 0.0
 @export var targeting: Targeting = Targeting.SELF
 
 @export var effects: Array[SkillEffect] = []

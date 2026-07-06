@@ -4,4 +4,4 @@ extends Node2D
 @onready var hud: SkillBar = $SkillBarHUD
 
 func _ready() -> void:
-	hud.bind(player.abilities)
+    hud.bind(player.abilities)

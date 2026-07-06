@@ -1,7 +1,7 @@
 extends GutTest
 
-func test_fireball_projectile_deals_fire_damage_on_hit():
-    var skill: Skill = load("res://skills/library/fireball.tres")
+func test_ember_bolt_projectile_deals_ember_damage_on_hit():
+    var skill: Skill = load("res://skills/library/ember_bolt.tres")
     var effect: SpawnProjectileEffect = skill.effects[0]
 
     var caster := Node2D.new()
@@ -34,14 +34,14 @@ func test_fireball_projectile_deals_fire_damage_on_hit():
 
     var projectile: Projectile = spawn_parent.get_child(0)
     assert_eq(projectile.damage, 50.0)
-    assert_eq(projectile.damage_type, StatKeys.DamageType.FIRE)
+    assert_eq(projectile.damage_type, StatKeys.DamageType.EMBER)
 
     projectile._on_body_entered(target)
 
     assert_eq(target_health.current(), 50.0)
 
-func test_fireball_projectile_ignores_its_own_caster():
-    var skill: Skill = load("res://skills/library/fireball.tres")
+func test_ember_bolt_projectile_ignores_its_own_caster():
+    var skill: Skill = load("res://skills/library/ember_bolt.tres")
     var effect: SpawnProjectileEffect = skill.effects[0]
 
     var caster := Node2D.new()
@@ -89,7 +89,7 @@ func test_execute_fails_when_projectile_scene_is_not_assigned():
     assert_push_error("projectile_scene")
 
 func test_execute_fails_when_spawn_parent_is_null():
-    var skill: Skill = load("res://skills/library/fireball.tres")
+    var skill: Skill = load("res://skills/library/ember_bolt.tres")
     var effect: SpawnProjectileEffect = skill.effects[0]
 
     var ctx := SkillContext.new()

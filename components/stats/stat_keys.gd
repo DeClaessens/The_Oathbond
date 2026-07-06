@@ -9,12 +9,22 @@ const MAX_HEALTH    := &"max_health"
 const MAX_MANA      := &"max_mana"
 const MANA_REGEN    := &"mana_regen"
 
+## Reserved for M2 (docs/design/stats-and-gear.md) — keys exist so affixes
+## and buffs can be authored; nothing reads them until the M2 damage-pipeline
+## and regen work lands.
+const HEALTH_REGEN        := &"health_regen"
+const CRIT_CHANCE         := &"crit_chance"          ## design base: 0.05
+const CRIT_MULTI          := &"crit_multi"           ## design base: 1.5
+const COOLDOWN_REDUCTION  := &"cooldown_reduction"
+const MANA_COST_REDUCTION := &"mana_cost_reduction"
+
 static func dmg(type: StringName) -> StringName:
     return StringName("dmg_%s" % type)
 
 static func resist(type: StringName) -> StringName:
     return StringName("resist_%s" % type)
 
+## Append-only — .tres files store these as ints (ADR-0005).
 enum Stat {
     MOVE_SPEED,
     JUMP_VELOCITY,
@@ -23,11 +33,20 @@ enum Stat {
     RESISTANCE,
     MAX_MANA,
     MANA_REGEN,
+    HEALTH_REGEN,
+    CRIT_CHANCE,
+    CRIT_MULTI,
+    COOLDOWN_REDUCTION,
+    MANA_COST_REDUCTION,
 }
 
+## Append-only — .tres files store these as ints (ADR-0005). EMBER kept
+## FIRE's slot in the 2026-07-06 rename, so pre-rename assets stay valid.
 enum DamageType {
     PHYSICAL,
-    FIRE,
+    EMBER,
+    RADIANCE,
+    ROT,
 }
 
 ## damage_type is only read for OUTGOING_DAMAGE and RESISTANCE; it's ignored
@@ -43,10 +62,17 @@ static func to_stringname(stat: Stat, damage_type: DamageType) -> StringName:
         Stat.RESISTANCE:      return resist(damage_type_name(damage_type))
         Stat.MAX_MANA:        return MAX_MANA
         Stat.MANA_REGEN:      return MANA_REGEN
+        Stat.HEALTH_REGEN:        return HEALTH_REGEN
+        Stat.CRIT_CHANCE:         return CRIT_CHANCE
+        Stat.CRIT_MULTI:          return CRIT_MULTI
+        Stat.COOLDOWN_REDUCTION:  return COOLDOWN_REDUCTION
+        Stat.MANA_COST_REDUCTION: return MANA_COST_REDUCTION
     return &""
 
 static func damage_type_name(type: DamageType) -> StringName:
     match type:
         DamageType.PHYSICAL: return &"physical"
-        DamageType.FIRE:     return &"fire"
+        DamageType.EMBER:    return &"ember"
+        DamageType.RADIANCE: return &"radiance"
+        DamageType.ROT:      return &"rot"
     return &"physical"

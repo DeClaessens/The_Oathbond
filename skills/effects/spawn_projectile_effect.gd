@@ -4,7 +4,7 @@ extends SkillEffect
 @export var projectile_scene: PackedScene
 @export var speed: float = 600.0
 @export var base_damage: int = 50
-@export var damage_type: StatKeys.DamageType = StatKeys.DamageType.FIRE
+@export var damage_type: StatKeys.DamageType = StatKeys.DamageType.EMBER
 
 func execute(ctx: SkillContext) -> bool:
     if projectile_scene == null:

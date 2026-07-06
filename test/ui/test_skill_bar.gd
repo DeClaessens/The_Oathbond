@@ -87,10 +87,10 @@ func test_slot_changed_fills_a_previously_empty_slot():
     bar.bind(fake)
     assert_false(bar._slots[2].state()["filled"])
 
-    fake.slot_changed.emit(2, _make_skill("Fireball"))
+    fake.slot_changed.emit(2, _make_skill("Ember Bolt"))
 
     assert_true(bar._slots[2].state()["filled"])
-    assert_eq(bar._slots[2].state()["letter"], "F")
+    assert_eq(bar._slots[2].state()["letter"], "E")
 
 func test_slot_changed_null_empties_a_slot():
     var built := _build()

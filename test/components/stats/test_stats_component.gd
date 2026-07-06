@@ -74,11 +74,11 @@ func test_flat_add_and_mult_compose_in_bucket_order():
 
 func test_scale_outgoing_applies_offensive_modifiers_to_skill_base():
     var mod := StatModifier.new()
-    mod.stat = StatKeys.dmg(StatKeys.damage_type_name(StatKeys.DamageType.FIRE))
+    mod.stat = StatKeys.dmg(StatKeys.damage_type_name(StatKeys.DamageType.EMBER))
     mod.op = StatModifier.Op.ADD_PCT
     mod.value = 0.5
     stats.add_modifier(mod)
-    assert_eq(stats.scale_outgoing(50.0, StatKeys.DamageType.FIRE), 75.0)
+    assert_eq(stats.scale_outgoing(50.0, StatKeys.DamageType.EMBER), 75.0)
 
 func test_mitigate_incoming_clamps_resistance_at_0_9():
     stats.base_stats = {

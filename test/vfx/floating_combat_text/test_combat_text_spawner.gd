@@ -8,7 +8,7 @@ func test_damage_dealt_spawns_floating_combat_text_at_target_position():
     target.global_position = Vector2(100, 50)
     add_child_autofree(target)
 
-    Events.damage_dealt.emit(null, target, 50, StatKeys.DamageType.FIRE)
+    Events.damage_dealt.emit(null, target, 50, StatKeys.DamageType.EMBER)
 
     assert_eq(spawner.get_child_count(), 1)
     var spawned: FloatingCombatText = spawner.get_child(0)

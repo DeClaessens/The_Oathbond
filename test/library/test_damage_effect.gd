@@ -3,7 +3,7 @@ extends GutTest
 func test_damage_effect_deals_scaled_damage_to_targets():
     var effect := DamageEffect.new()
     effect.base_amount = 50
-    effect.damage_type = StatKeys.DamageType.FIRE
+    effect.damage_type = StatKeys.DamageType.EMBER
 
     var caster := Node2D.new()
     var caster_stats := StatsComponent.new()
@@ -34,7 +34,7 @@ func test_damage_effect_deals_scaled_damage_to_targets():
 func test_negative_base_amount_does_not_heal_the_target():
     var effect := DamageEffect.new()
     effect.base_amount = -50
-    effect.damage_type = StatKeys.DamageType.FIRE
+    effect.damage_type = StatKeys.DamageType.EMBER
 
     var caster := Node2D.new()
     var caster_stats := StatsComponent.new()

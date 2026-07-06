@@ -57,8 +57,8 @@ A Modifier that weakens a Stat. This is a domain distinction the implementation 
 _Avoid_: Negative buff
 
 **Damage Type**:
-The classification of a hit (e.g. Physical, Fire) that selects which offensive Modifiers scale it outgoing and which Resistance reduces it incoming.
-_Avoid_: Element, school
+The classification of a hit that selects which offensive Modifiers scale it outgoing and which Resistance reduces it incoming. The roster is Physical, Ember, Radiance, and Rot (see `docs/design/stats-and-gear.md` for what each means in the world).
+_Avoid_: Element, school, Fire (renamed to Ember 2026-07-06)
 
 **Resistance**:
 A Stat that reduces incoming damage of one Damage Type, capped so a character is never fully immune.

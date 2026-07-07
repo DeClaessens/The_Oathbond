@@ -47,6 +47,8 @@ script = ExtResource("7_fmb3c")
 faction = 0
 
 [node name="Camera2D" type="Camera2D" parent="."]
+process_callback = 0
+zoom = Vector2(0.8, 0.8)
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0
 limit_smoothed = true

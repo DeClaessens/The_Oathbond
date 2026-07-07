@@ -72,4 +72,9 @@ before adding one:
 - Load authored skills with `load("res://skills/library/<name>.tres")` rather
   than reconstructing them, so the test exercises the real asset.
 
+**After adding any new `class_name` script**, run `--headless --import` once
+(same binary, no GUT flags) before trusting a test run: until the global
+class cache refreshes, test files referencing the new class are *silently
+skipped* and the suite reports green without them.
+
 Done when the new test appears in the run output and the suite is green.

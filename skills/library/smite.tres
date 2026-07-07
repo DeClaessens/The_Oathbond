@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="Skill" format=3]
+[gd_resource type="Resource" script_class="Skill" format=3 uid="uid://crmckm5lwg8h8"]
 
 [ext_resource type="Script" uid="uid://x7ohp52w0au8" path="res://skills/core/skill_effect.gd" id="1_effect"]
 [ext_resource type="Script" uid="uid://c5vdrao75ibvu" path="res://skills/effects/damage_effect.gd" id="2_damage"]
@@ -7,7 +7,6 @@
 [sub_resource type="Resource" id="Resource_smite_damage"]
 script = ExtResource("2_damage")
 base_amount = 25
-damage_type = 0
 
 [resource]
 script = ExtResource("3_skill")
@@ -15,7 +14,5 @@ id = &"smite"
 display_name = "Smite"
 description = "Strikes the nearest enemy for direct damage."
 cooldown = 0.5
-mana_cost = 0.0
 targeting = 2
-targeting_range = 600.0
 effects = Array[ExtResource("1_effect")]([SubResource("Resource_smite_damage")])

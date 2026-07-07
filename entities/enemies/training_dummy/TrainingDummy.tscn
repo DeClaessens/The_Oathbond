@@ -3,8 +3,8 @@
 [ext_resource type="Texture2D" uid="uid://in2rn1m1q1ge" path="res://icon.svg" id="1_icon"]
 [ext_resource type="Script" uid="uid://b4pbyyq5xdsln" path="res://components/stats/stats_component.gd" id="2_stats"]
 [ext_resource type="Script" uid="uid://3bx2m8mbr6qn" path="res://components/faction/faction_component.gd" id="3_faction"]
-[ext_resource type="Script" path="res://components/health/health_component.gd" id="4_health"]
-[ext_resource type="Script" path="res://components/death/despawn_on_death_component.gd" id="5_despawn"]
+[ext_resource type="Script" uid="uid://c2ij8xxbj8p3l" path="res://components/health/health_component.gd" id="4_health"]
+[ext_resource type="Script" uid="uid://m3gpra1lovcy" path="res://components/death/despawn_on_death_component.gd" id="5_despawn"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_dummy"]
 size = Vector2(127, 128)
@@ -30,8 +30,8 @@ base_stats = {
 script = ExtResource("3_faction")
 faction = 1
 
-[node name="HealthComponent" type="Node2D" parent="."]
+[node name="HealthComponent" type="Node2D" parent="." unique_id=1980435525]
 script = ExtResource("4_health")
 
-[node name="DespawnOnDeathComponent" type="Node" parent="."]
+[node name="DespawnOnDeathComponent" type="Node" parent="." unique_id=318643706]
 script = ExtResource("5_despawn")

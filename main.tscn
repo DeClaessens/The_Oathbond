@@ -23,11 +23,11 @@ position = Vector2(650, 536)
 
 [node name="CombatTextSpawner" parent="." unique_id=1151528170 instance=ExtResource("6_combat_text")]
 
-[node name="Slime1" parent="." instance=ExtResource("2_272bh")]
+[node name="Slime1" parent="." unique_id=1776848909 instance=ExtResource("2_272bh")]
 position = Vector2(1600, 552)
 
-[node name="Slime2" parent="." instance=ExtResource("2_272bh")]
+[node name="Slime2" parent="." unique_id=741297630 instance=ExtResource("2_272bh")]
 position = Vector2(2800, 552)
 
-[node name="Slime3" parent="." instance=ExtResource("2_272bh")]
+[node name="Slime3" parent="." unique_id=1714204794 instance=ExtResource("2_272bh")]
 position = Vector2(4200, 552)

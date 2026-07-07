@@ -18,4 +18,5 @@ display_name = "Super Jump"
 description = "Jump higher for a short time."
 cooldown = 4.0
 mana_cost = 15.0
+ignores_global_cooldown = true
 effects = Array[ExtResource("1_ww0ci")]([SubResource("Resource_vhsgg")])

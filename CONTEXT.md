@@ -35,6 +35,10 @@ _Avoid_: Target type
 A Known Skill is one a character has learned and can equip. An Equipped Skill is a Known Skill currently placed in one of the character's Ability Slots. Learning and equipping are deliberately separate actions — a character can know a skill without it being equipped.
 _Avoid_: Learned skill (use Known Skill)
 
+**Global Cooldown** (GCD):
+A short, shared lockout on `AbilityComponent` that starts on any successful cast and briefly blocks every Ability Slot, not just the one used. Sets combat cadence independent of each Skill's own cooldown. A Skill can opt out via `ignores_global_cooldown`, meaning it neither respects the GCD (castable during it) nor triggers it (casting it starts nothing) — used for movement Skills like Sprint and Super Jump, which must never feel input-gated.
+_Avoid_: Cast time, shared cooldown (use Global Cooldown / GCD)
+
 **Skill Bar**:
 The player's on-screen HUD that reflects their four Ability Slots — which Skills are equipped, which slots are open, and each slot's live cooldown. Read-only: it mirrors the `AbilityComponent`'s state, it does not equip or activate.
 _Avoid_: Hotbar, action bar, ability bar

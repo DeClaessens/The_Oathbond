@@ -6,11 +6,15 @@ signal skill_failed(index: int, reason: StringName)
 signal cooldown_changed(index: int, remaining: float, total: float)
 signal skill_ready(index: int)
 signal slot_changed(index: int, skill: Skill)
+signal global_cooldown_started(duration: float)
 
 const SLOT_COUNT := 4
 
+@export var global_cooldown: float = 0.4
+
 var caster: Node
 var slots: Array[AbilitySlot] = []
+var _gcd_remaining: float = 0.0
 
 func _ready() -> void:
     slots.resize(SLOT_COUNT)
@@ -35,6 +39,8 @@ func unequip(index: int) -> void:
     slot_changed.emit(index, null)
 
 func _process(delta: float) -> void:
+    if _gcd_remaining > 0.0:
+        _gcd_remaining = maxf(0.0, _gcd_remaining - delta)
     for i in slots.size():
         var slot := slots[i]
         if slot != null and slot.cooldown_remaining > 0.0:
@@ -63,7 +69,8 @@ func activate(index: int, aim_point: Vector2 = Vector2.ZERO) -> void:
     if caster != null and caster.is_inside_tree():
         ctx.spawn_parent = caster.get_tree().current_scene
 
-    var resolved := _resolve_activation(slot.skill, slot.is_ready(), has_enough_mana, caster, ctx.source_position, aim_point)
+    var gcd_ready := _gcd_remaining <= 0.0
+    var resolved := _resolve_activation(slot.skill, gcd_ready, slot.is_ready(), has_enough_mana, caster, ctx.source_position, aim_point)
     if not resolved.ok:
         skill_failed.emit(index, resolved.failure_reason)
         return
@@ -78,9 +85,14 @@ func activate(index: int, aim_point: Vector2 = Vector2.ZERO) -> void:
     slot.cooldown_remaining = slot.skill.cooldown
     if mana != null:
         mana.spend(slot.skill.mana_cost)
+    if not slot.skill.ignores_global_cooldown:
+        _gcd_remaining = global_cooldown
+        global_cooldown_started.emit(global_cooldown)
     skill_activated.emit(index, slot.skill)
 
-static func _resolve_activation(skill: Skill, is_ready: bool, has_enough_mana: bool, caster: Node, source_position: Vector2, aim_point: Vector2) -> Dictionary:
+static func _resolve_activation(skill: Skill, gcd_ready: bool, is_ready: bool, has_enough_mana: bool, caster: Node, source_position: Vector2, aim_point: Vector2) -> Dictionary:
+    if not skill.ignores_global_cooldown and not gcd_ready:
+        return {ok = false, failure_reason = &"on_global_cooldown", targets = [] as Array[Node], aim_direction = Vector2.ZERO}
     if not is_ready:
         return {ok = false, failure_reason = &"on_cooldown", targets = [] as Array[Node], aim_direction = Vector2.ZERO}
     if not has_enough_mana:

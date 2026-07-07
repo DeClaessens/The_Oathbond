@@ -1,0 +1,49 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Texture2D" uid="uid://in2rn1m1q1ge" path="res://icon.svg" id="1_icon"]
+[ext_resource type="Script" uid="uid://b4pbyyq5xdsln" path="res://components/stats/stats_component.gd" id="2_stats"]
+[ext_resource type="Script" uid="uid://3bx2m8mbr6qn" path="res://components/faction/faction_component.gd" id="3_faction"]
+[ext_resource type="Script" uid="uid://c2ij8xxbj8p3l" path="res://components/health/health_component.gd" id="4_health"]
+[ext_resource type="Script" uid="uid://m3gpra1lovcy" path="res://components/death/despawn_on_death_component.gd" id="5_despawn"]
+[ext_resource type="Script" uid="uid://cp2rikhckvi5e" path="res://skills/core/ability_component.gd" id="6_abilities"]
+[ext_resource type="Script" path="res://components/ai/ai_controller_component.gd" id="7_ai"]
+[ext_resource type="Resource" path="res://skills/library/slime_bite.tres" id="8_bite"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_slime"]
+radius = 48.0
+
+[node name="Slime" type="CharacterBody2D"]
+collision_layer = 4
+
+[node name="Icon" type="Sprite2D" parent="."]
+position = Vector2(-1, 0)
+texture = ExtResource("1_icon")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(-0.5, 0)
+shape = SubResource("CircleShape2D_slime")
+
+[node name="StatsComponent" type="Node" parent="."]
+script = ExtResource("2_stats")
+base_stats = {
+"dmg_physical": 8.0,
+"max_health": 40.0,
+"move_speed": 150.0
+}
+
+[node name="FactionComponent" type="Node" parent="."]
+script = ExtResource("3_faction")
+faction = 1
+
+[node name="HealthComponent" type="Node2D" parent="."]
+script = ExtResource("4_health")
+
+[node name="DespawnOnDeathComponent" type="Node" parent="."]
+script = ExtResource("5_despawn")
+
+[node name="AbilityComponent" type="Node" parent="."]
+script = ExtResource("6_abilities")
+
+[node name="AiControllerComponent" type="Node" parent="."]
+script = ExtResource("7_ai")
+skill = ExtResource("8_bite")

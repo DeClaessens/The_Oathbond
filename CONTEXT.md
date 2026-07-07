@@ -85,6 +85,10 @@ _Avoid_: Team check, alignment
 A node attached to a character that gives it one capability — numeric attributes (`StatsComponent`), side/identity (`FactionComponent`), or a Health readout (`HealthComponent`). Most Components own the data for their capability outright; `HealthComponent` is the exception — it owns no data itself and instead orchestrates a Resource Pool that lives elsewhere plus the view that renders it. Characters are assembled from Components rather than subclassed by type — see ADR-0007.
 _Avoid_: System (too broad), Manager
 
+**AI Controller**:
+The Component (`AiControllerComponent`) that drives a non-player character through a three-state loop — Idle, Chase, Attack — using the same detection (`TargetSelection.find_enemy`) and the same `AbilityComponent.activate()` call a player's input would make. It never resolves targeting or damage itself; it only decides when to walk and when to press the button. Aggro Range is the distance within which it notices a hostile at all, independent of the equipped Skill's own `targeting_range`, which gates Attack.
+_Avoid_: Enemy AI (too broad — this Component is the behavior loop specifically, not "everything about how an enemy behaves")
+
 ### Health & combat feedback
 
 **Resource Pool**:

@@ -118,3 +118,13 @@ _Avoid_: MP bar
 **Floating Combat Text**:
 A short-lived number that appears at a character's position when a hit lands, drifts upward, and fades — each hit spawns its own independent instance. Triggered globally off `Events.damage_dealt`, not owned by or bound to any single entity.
 _Avoid_: Hitsplat, damage number, damage popup
+
+### World
+
+**Level**:
+The engine container a piece of the world is built from — geometry (floor, walls, platforms) plus a `bounds: Rect2` the camera clamps to (`levels/level.gd`, `class_name Level`). Placeholder today (`levels/proving_grounds/`); come M4, a Zone is a Level with identity — art, ambience, mastery — layered on top. Entity-free by design: a level scene owns geometry only, not who spawns in it. Distinct from **Character Level** (M0.4's XP-driven character progression rank) — same word, unrelated concept; when ambiguous, say "the level scene" or "character level" explicitly.
+_Avoid_: Map, stage
+
+**Follow Camera**:
+The `Camera2D` that tracks the player, owned by `Player.tscn` (not the level) per ADR-0014 — the player is the only thing a solo game's camera ever follows. Smoothed (`position_smoothing_enabled`, `position_smoothing_speed`) and clamped to the current `Level`'s `bounds` (`limit_smoothed` plus `limit_left/top/right/bottom`, copied on by `main.gd`), so the view never shows past the level's edges.
+_Avoid_: Viewport, follow cam

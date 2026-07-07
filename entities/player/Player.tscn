@@ -45,3 +45,8 @@ script = ExtResource("5_mana")
 [node name="FactionComponent" type="Node2D" parent="." unique_id=308965380]
 script = ExtResource("7_fmb3c")
 faction = 0
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position_smoothing_enabled = true
+position_smoothing_speed = 8.0
+limit_smoothed = true

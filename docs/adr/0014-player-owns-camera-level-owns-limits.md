@@ -1,0 +1,15 @@
+# The player owns the camera, the level owns its limits
+
+`Camera2D` lives inside `Player.tscn`, not the level scene. In a solo game the player is the only thing the camera will ever follow, so owning it where the player is owned gives every future level camera-following behavior for free — a new `Level` scene needs no camera wiring of its own, only bounds. The camera is scene-authored data only: `position_smoothing_enabled = true`, `position_smoothing_speed = 8.0`, `limit_smoothed = true`, zoom left at 1, no script, no drag margins, no look-ahead. Smoothing values are feel-tuned later, in play — not now.
+
+Clamping is level data, not camera data: `levels/level.gd` (`class_name Level`) exposes a single `@export var bounds: Rect2`, authored per level scene (`levels/proving_grounds/proving_grounds.tscn`). `main.gd._ready()` reads the instanced level's `bounds` and copies it onto the player's `Camera2D.limit_left/top/right/bottom`. This is the smallest seam a future `Level` framework (M4's real zones) can grow from without inventing one today — a level only ever needs to *describe* its bounds; wiring them to whatever is currently following is a one-time job for the scene that holds both.
+
+## Considered Options
+
+Putting `Camera2D` on the level (as `main.tscn` does with the floor today) was considered, so a level fully owns "how it's viewed." Rejected: with one player and no camera-swapping systems planned before M4, this doubles the wiring (every level scene would need to find the player and re-parent or reference the camera) for no near-term benefit, and it inverts the natural ownership — a camera exists to look *at* something, and there's exactly one such subject in this game today.
+
+## Consequences
+
+- Any future teleport (respawn, portals, fast travel) must call the camera's `reset_smoothing()` after moving the player, or the camera will visibly pan across the whole level to catch up. Not built in this story — no respawn/portal system exists yet — but the next one that moves the player instantly must remember this.
+- A level scene with no bounds set (`Rect2()`, zero-sized) will clamp the camera to a single point at the origin; `main.gd` doesn't validate this, so an author who forgets to set `bounds` gets a broken-looking camera, not an error.
+- Swapping levels (not built here) means re-reading the new level's `bounds` and re-applying them to the same camera; the camera itself never needs to move between scenes.

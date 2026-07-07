@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dd3euuptnoxdy"]
 
-[ext_resource type="PackedScene" uid="uid://cphh21iw50k52" path="res://Floor.tscn" id="2_0xm2m"]
+[ext_resource type="PackedScene" path="res://levels/proving_grounds/proving_grounds.tscn" id="2_0xm2m"]
 [ext_resource type="PackedScene" path="res://entities/enemies/slime/Slime.tscn" id="2_272bh"]
 [ext_resource type="PackedScene" uid="uid://567ev6herjty" path="res://entities/player/Player.tscn" id="2_h2yge"]
 [ext_resource type="Script" uid="uid://bh6mp3segpcbt" path="res://main.gd" id="3_main"]
@@ -11,18 +11,23 @@
 [node name="Main" type="Node2D" unique_id=1234891808]
 script = ExtResource("3_main")
 
-[node name="Slime" parent="." unique_id=1592907809 instance=ExtResource("2_272bh")]
-position = Vector2(924, 525)
-
-[node name="Floor" parent="." unique_id=1015941737 instance=ExtResource("2_0xm2m")]
-position = Vector2(0, 605)
+[node name="ProvingGrounds" parent="." unique_id=1015941737 instance=ExtResource("2_0xm2m")]
 
 [node name="Player" parent="." unique_id=17166481 instance=ExtResource("2_h2yge")]
-position = Vector2(204, 523)
+position = Vector2(250, 536)
 
 [node name="SkillBarHUD" parent="." unique_id=1712213688 instance=ExtResource("4_hud")]
 
 [node name="TrainingDummy" parent="." unique_id=1290600078 instance=ExtResource("5_lquwl")]
-position = Vector2(656, 519)
+position = Vector2(650, 536)
 
 [node name="CombatTextSpawner" parent="." unique_id=1151528170 instance=ExtResource("6_combat_text")]
+
+[node name="Slime1" parent="." instance=ExtResource("2_272bh")]
+position = Vector2(1600, 552)
+
+[node name="Slime2" parent="." instance=ExtResource("2_272bh")]
+position = Vector2(2800, 552)
+
+[node name="Slime3" parent="." instance=ExtResource("2_272bh")]
+position = Vector2(4200, 552)

@@ -17,12 +17,15 @@ func _ready() -> void:
     var sprint: Skill = load("res://skills/library/sprint.tres")
     var super_jump: Skill = load("res://skills/library/super_jump.tres")
     var ember_bolt: Skill = load("res://skills/library/ember_bolt.tres")
+    var smite: Skill = load("res://skills/library/smite.tres")
     learn_skill(sprint)
     learn_skill(super_jump)
     learn_skill(ember_bolt)
+    learn_skill(smite)
     abilities.equip(sprint, 0)
     abilities.equip(super_jump, 1)
     abilities.equip(ember_bolt, 2)
+    abilities.equip(smite, 3)
 
 func learn_skill(skill: Skill) -> void:
     if skill in known_skills:

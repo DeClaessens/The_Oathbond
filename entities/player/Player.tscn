@@ -7,6 +7,7 @@
 [ext_resource type="Script" uid="uid://c2ij8xxbj8p3l" path="res://components/health/health_component.gd" id="4_health"]
 [ext_resource type="Script" uid="uid://csh3j1bsplswt" path="res://components/mana/mana_component.gd" id="5_mana"]
 [ext_resource type="Script" uid="uid://3bx2m8mbr6qn" path="res://components/faction/faction_component.gd" id="7_fmb3c"]
+[ext_resource type="Script" path="res://components/experience/experience_component.gd" id="8_experience"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_eae6q"]
 size = Vector2(127, 128)
@@ -45,6 +46,9 @@ script = ExtResource("5_mana")
 [node name="FactionComponent" type="Node2D" parent="." unique_id=308965380]
 script = ExtResource("7_fmb3c")
 faction = 0
+
+[node name="ExperienceComponent" type="Node" parent="."]
+script = ExtResource("8_experience")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 process_callback = 0

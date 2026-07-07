@@ -119,6 +119,16 @@ _Avoid_: MP bar
 A short-lived number that appears at a character's position when a hit lands, drifts upward, and fades — each hit spawns its own independent instance. Triggered globally off `Events.damage_dealt`, not owned by or bound to any single entity.
 _Avoid_: Hitsplat, damage number, damage popup
 
+### Progression
+
+**Experience** (XP):
+A quantity a character earns by killing others, tracked by `ExperienceComponent` as progress within the current Character Level toward the next. Earned, never spent — it fills the level bar and is gone once it converts. Awarded by `ExperienceComponent` itself off `Events.character_died` when the killer is its own parent; a `null` killer (environmental death) or a victim with no `XpRewardComponent` grants nothing, and a character cannot earn Experience by killing itself.
+_Avoid_: XP as a Stat (it isn't modified by buffs — it's a running count, not a composed value)
+
+**Character Level**:
+A character's permanent progression tier, starting at 1 and rising when accumulated Experience crosses `xp_to_next(level)`. Each level-up grants permanent flat growth (`+Max Health`, `+Max Mana`) applied as stacking Modifiers — never by mutating `base_stats` — plus a full restore of Health and Mana. Distinct from the world **Level** above — same word, unrelated concept; say "character level" or "the level scene" when ambiguous. Not persisted yet (M1).
+_Avoid_: Player Level (levels apply to any character, not just the player), XP Level
+
 ### World
 
 **Level**:

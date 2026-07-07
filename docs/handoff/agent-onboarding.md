@@ -19,10 +19,17 @@ flagged stop is a success; a silently improvised deviation is a failure.
   (`.tres`) under `skills/`, UI under `ui/`, tests under `test/`.
 - Domain vocabulary lives in `CONTEXT.md` at the repo root; architectural
   decisions in `docs/adr/`. Read the ADRs your brief cites.
-- Two project skills exist and are mandatory reading when relevant:
+- Project skills (`.claude/skills/`) are mandatory reading when relevant:
   - `oathbond-skill-system` — before touching Skill / SkillEffect /
     StatModifier / AbilityComponent / StatsComponent or any `.tres` skill asset.
+  - `oathbond-character-assembly` — before adding an entity, writing a
+    component, editing a `.tscn`, or picking collision layers.
   - `godot-gut-tests` — before running or writing tests.
+  - `godot-headless` — to smoke-run / parse-check the project, and after
+    adding any new `class_name` (class-cache refresh).
+  - `oathbond-briefs` — the brief-implementation workflow itself.
+  - (`oathbond-brief-authoring` exists too, but that's planning-tier work —
+    implementing agents never write briefs.)
 
 ## Hard invariants (from ADRs — violating these fails review)
 

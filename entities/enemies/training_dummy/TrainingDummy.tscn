@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://3bx2m8mbr6qn" path="res://components/faction/faction_component.gd" id="3_faction"]
 [ext_resource type="Script" uid="uid://c2ij8xxbj8p3l" path="res://components/health/health_component.gd" id="4_health"]
 [ext_resource type="Script" uid="uid://m3gpra1lovcy" path="res://components/death/despawn_on_death_component.gd" id="5_despawn"]
+[ext_resource type="Script" path="res://components/highlight/highlight_component.gd" id="6_highlight"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_dummy"]
 size = Vector2(127, 128)
@@ -35,3 +36,6 @@ script = ExtResource("4_health")
 
 [node name="DespawnOnDeathComponent" type="Node" parent="." unique_id=318643706]
 script = ExtResource("5_despawn")
+
+[node name="HighlightComponent" type="Node" parent="."]
+script = ExtResource("6_highlight")

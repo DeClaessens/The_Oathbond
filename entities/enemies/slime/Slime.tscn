@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Texture2D" uid="uid://in2rn1m1q1ge" path="res://icon.svg" id="1_icon"]
 [ext_resource type="Script" uid="uid://b4pbyyq5xdsln" path="res://components/stats/stats_component.gd" id="2_stats"]
@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://components/ai/ai_controller_component.gd" id="7_ai"]
 [ext_resource type="Resource" path="res://skills/library/slime_bite.tres" id="8_bite"]
 [ext_resource type="Script" path="res://components/experience/xp_reward_component.gd" id="9_xp_reward"]
+[ext_resource type="Script" path="res://components/highlight/highlight_component.gd" id="10_highlight"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_slime"]
 radius = 48.0
@@ -52,3 +53,6 @@ skill = ExtResource("8_bite")
 [node name="XpRewardComponent" type="Node" parent="."]
 script = ExtResource("9_xp_reward")
 amount = 10
+
+[node name="HighlightComponent" type="Node" parent="."]
+script = ExtResource("10_highlight")

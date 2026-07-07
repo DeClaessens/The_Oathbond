@@ -28,7 +28,8 @@ The declarative hint on a Skill (Self / Ally / Enemy / Area / None) describing w
 - **Self**: resolves to the caster as the sole target.
 - **Area**: resolves to an aim direction from wherever the caster is pointing (mouse position, stick input); carries no discrete targets.
 - **None**: resolves to no targets and no aim direction — for effects that read neither.
-- **Ally** / **Enemy**: not yet resolvable — there is no target-selection system. A Skill authored with either fails loudly (the caster has no way to find "an ally" or "an enemy" yet) rather than falling back to a guess.
+- **Enemy**: resolves to the living hostile character (see Hostility) nearest the aim point within `TargetSelection.SNAP_RADIUS` and the Skill's `targeting_range`; if none is near the aim point, falls back to the living hostile nearest the caster within range; `null` (cast fails with `&"no_target"`) only when no living hostile is in range at all.
+- **Ally**: same snap-then-fallback rule over allied characters, but the caster itself always counts as a candidate — so Ally targeting degenerates to the caster when no other ally is around, rather than failing.
 _Avoid_: Target type
 
 **Known Skill** / **Equipped Skill**:
@@ -71,8 +72,12 @@ _Avoid_: Defense, armor
 ### Identity
 
 **Faction**:
-The side a character belongs to — Player, Enemy, or Neutral — carried by a `FactionComponent`. Identity only: it says what a character is, not who it's hostile to. Resolving hostility between Factions (e.g. for Ally/Enemy Targeting) is a future target-selection system's job.
+The side a character belongs to — Player, Enemy, or Neutral — carried by a `FactionComponent`. Identity only: it says what a character is, not who it's hostile to. Resolving hostility between Factions (e.g. for Ally/Enemy Targeting) is `TargetSelection`'s job (see Hostility).
 _Avoid_: Team, side (on their own)
+
+**Hostility**:
+The relationship between two Factions — hostile, allied, or neither — resolved by `TargetSelection.is_hostile`/`is_allied` (`skills/targeting/target_selection.gd`), never stored on `FactionComponent`. Player and Enemy are mutually hostile; Neutral is hostile to nothing and nothing is hostile to it; a shared Faction is allied (including a character with itself, so Ally targeting always has a fallback). See ADR-0013 for why this is a static rule rather than a data-driven matrix.
+_Avoid_: Team check, alignment
 
 ### Composition
 

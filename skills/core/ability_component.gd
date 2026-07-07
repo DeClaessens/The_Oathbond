@@ -10,7 +10,7 @@ signal global_cooldown_started(duration: float)
 
 const SLOT_COUNT := 4
 
-@export var global_cooldown: float = 0.4
+@export var global_cooldown: float = 0.5
 
 var caster: Node
 var slots: Array[AbilitySlot] = []
@@ -104,7 +104,16 @@ static func _resolve_activation(skill: Skill, gcd_ready: bool, is_ready: bool, h
             return {ok = true, failure_reason = &"", targets = [] as Array[Node], aim_direction = (aim_point - source_position).normalized()}
         Skill.Targeting.NONE:
             return {ok = true, failure_reason = &"", targets = [] as Array[Node], aim_direction = Vector2.ZERO}
-        Skill.Targeting.ENEMY, Skill.Targeting.ALLY:
-            push_error("AbilityComponent: %s targeting has no target-selection system yet" % Skill.Targeting.keys()[skill.targeting])
-            return {ok = false, failure_reason = &"unresolvable_targeting", targets = [] as Array[Node], aim_direction = Vector2.ZERO}
+        Skill.Targeting.ENEMY:
+            var enemy := TargetSelection.find_enemy(caster, source_position, aim_point, skill.targeting_range)
+            if enemy == null:
+                return {ok = false, failure_reason = &"no_target", targets = [] as Array[Node], aim_direction = Vector2.ZERO}
+            var enemy_position := (enemy as Node2D).global_position if enemy is Node2D else source_position
+            return {ok = true, failure_reason = &"", targets = [enemy] as Array[Node], aim_direction = (enemy_position - source_position).normalized()}
+        Skill.Targeting.ALLY:
+            var ally := TargetSelection.find_ally(caster, source_position, aim_point, skill.targeting_range)
+            if ally == null:
+                return {ok = false, failure_reason = &"no_target", targets = [] as Array[Node], aim_direction = Vector2.ZERO}
+            var ally_position := (ally as Node2D).global_position if ally is Node2D else source_position
+            return {ok = true, failure_reason = &"", targets = [ally] as Array[Node], aim_direction = (ally_position - source_position).normalized()}
     return {ok = false, failure_reason = &"unresolvable_targeting", targets = [] as Array[Node], aim_direction = Vector2.ZERO}

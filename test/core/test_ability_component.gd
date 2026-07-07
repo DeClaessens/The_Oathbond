@@ -44,19 +44,47 @@ func test_none_targeting_resolves_to_nothing():
     assert_eq(result.targets, [] as Array[Node])
     assert_eq(result.aim_direction, Vector2.ZERO)
 
-func test_enemy_targeting_fails_with_no_target_selection_system():
+func _add_faction(node: Node, faction: FactionComponent.Faction) -> void:
+    var faction_component := FactionComponent.new()
+    faction_component.name = "FactionComponent"
+    faction_component.faction = faction
+    node.add_child(faction_component)
+
+func test_enemy_targeting_resolves_to_the_target_and_sets_aim_direction():
+    add_child_autofree(caster)
+    _add_faction(caster, FactionComponent.Faction.PLAYER)
+    var enemy := Node2D.new()
+    enemy.global_position = Vector2(100, 0)
+    _add_faction(enemy, FactionComponent.Faction.ENEMY)
+    add_child_autofree(enemy)
+
+    var skill := _skill_with_targeting(Skill.Targeting.ENEMY)
+    var result := AbilityComponent._resolve_activation(skill, true, true, true, caster, Vector2.ZERO, Vector2(100, 0))
+
+    assert_true(result.ok)
+    assert_eq(result.targets, [enemy] as Array[Node])
+    assert_eq(result.aim_direction, Vector2.RIGHT)
+
+func test_enemy_targeting_fails_with_no_target_when_nothing_hostile_is_in_range():
+    add_child_autofree(caster)
+    _add_faction(caster, FactionComponent.Faction.PLAYER)
+
     var skill := _skill_with_targeting(Skill.Targeting.ENEMY)
     var result := AbilityComponent._resolve_activation(skill, true, true, true, caster, Vector2.ZERO, Vector2.ZERO)
-    assert_false(result.ok)
-    assert_eq(result.failure_reason, &"unresolvable_targeting")
-    assert_push_error("ENEMY")
 
-func test_ally_targeting_fails_with_no_target_selection_system():
-    var skill := _skill_with_targeting(Skill.Targeting.ALLY)
-    var result := AbilityComponent._resolve_activation(skill, true, true, true, caster, Vector2.ZERO, Vector2.ZERO)
     assert_false(result.ok)
-    assert_eq(result.failure_reason, &"unresolvable_targeting")
-    assert_push_error("ALLY")
+    assert_eq(result.failure_reason, &"no_target")
+
+func test_ally_targeting_resolves_to_the_caster_when_alone():
+    var solo_caster := Node2D.new()
+    add_child_autofree(solo_caster)
+    _add_faction(solo_caster, FactionComponent.Faction.PLAYER)
+
+    var skill := _skill_with_targeting(Skill.Targeting.ALLY)
+    var result := AbilityComponent._resolve_activation(skill, true, true, true, solo_caster, Vector2(5, 5), Vector2(5, 5))
+
+    assert_true(result.ok)
+    assert_eq(result.targets, [solo_caster] as Array[Node])
 
 func test_on_cooldown_fails_before_targeting_is_considered():
     var skill := _skill_with_targeting(Skill.Targeting.SELF)
@@ -426,6 +454,36 @@ func test_failed_cast_does_not_start_global_cooldown():
     assert_signal_emitted_with_parameters(abilities, "skill_failed", [0, &"empty_slot"])
     assert_signal_not_emitted(abilities, "global_cooldown_started")
     assert_eq(abilities._gcd_remaining, 0.0)
+
+func test_activate_with_no_target_fails_without_spending_mana_or_setting_cooldown():
+    var abilities := AbilityComponent.new()
+    abilities.caster = caster
+    add_child_autofree(abilities)
+    add_child_autofree(caster)
+    _add_faction(caster, FactionComponent.Faction.PLAYER)
+    var mana := ManaComponent.new()
+    mana.name = "ManaComponent"
+    var caster_stats := StatsComponent.new()
+    caster_stats.name = "StatsComponent"
+    caster_stats.base_stats = {StatKeys.MAX_MANA: 100.0}
+    caster.add_child(caster_stats)
+    caster.add_child(mana)
+
+    var skill := _skill_with_targeting(Skill.Targeting.ENEMY)
+    skill.mana_cost = 10.0
+    skill.cooldown = 2.0
+    var effect := FakeSkillEffect.new()
+    skill.effects = [effect] as Array[SkillEffect]
+    abilities.equip(skill, 0)
+
+    watch_signals(abilities)
+    abilities.activate(0)
+
+    assert_eq(effect.execute_calls, 0)
+    assert_eq(mana.current(), 100.0, "mana must not be spent when no target is found")
+    assert_eq(abilities.slots[0].cooldown_remaining, 0.0, "cooldown must not be started when no target is found")
+    assert_signal_emitted_with_parameters(abilities, "skill_failed", [0, &"no_target"])
+    assert_signal_not_emitted(abilities, "global_cooldown_started")
 
 func test_global_cooldown_started_fires_exactly_once_per_successful_cast():
     var abilities := AbilityComponent.new()

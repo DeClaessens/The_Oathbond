@@ -11,7 +11,8 @@ these should be published as GitHub issues (label `ready-for-agent`) per
 
 The full development plan — every milestone as a tracker-ready epic with
 stories — lives in `docs/plan/epics-and-stories.md`; these briefs are the
-specs behind its M0 stories.
+specs behind its M0 stories. Ready-to-paste dispatch prompts that hand each
+brief to a coding agent live in `docs/handoff/`.
 
 ## M0 — Combat completeness
 

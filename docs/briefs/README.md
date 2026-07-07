@@ -23,6 +23,7 @@ brief to a coding agent live in `docs/handoff/`.
 | 03 | [First real enemy + AI](m0-03-enemy-ai.md) | 02 (and 01, trivially) |
 | 04 | [XP & character levels](m0-04-xp-and-levels.md) | 03 (needs something to kill) |
 | 05 | [Target highlight](m0-05-target-highlight.md) | 02 (best after 03) |
+| 08 | [Proving-grounds level + follow camera](m0-08-level-and-camera.md) | 03 (Slime exists to place) |
 
 M0 exit criterion (from `docs/VISION.md`): a play session where you fight,
 die, and level.

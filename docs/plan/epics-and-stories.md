@@ -32,7 +32,7 @@ mid-implementation, stop and re-plan — never improvise (CLAUDE.md).
 > skill system the player uses; targeting resolves with a snap-to-cursor
 > aim model and an honest highlight; a global cooldown bounds cast rate;
 > XP and levels close the loop. **Exit: a play session where you fight,
-> die, and level.** Specs: `docs/briefs/m0-01` … `m0-05`.
+> die, and level.** Specs: `docs/briefs/m0-01` … `m0-05`, `m0-08`.
 
 ### M0.1 — Global cooldown
 
@@ -147,6 +147,25 @@ decision in VISION.md's open questions and, if anything changes, a brief.
 - [ ] Follow-up brief filed if the answer isn't "keep cheap respawn"
 
 **Blocked by:** M0.4 (want the fight–die–level loop playable first). `ready-for-human`
+
+### M0.8 — Proving-grounds level + follow camera
+
+**What to build.** Retire the single-slab test floor: a placeholder level
+four screens wide with a normal-jump platform route and one
+Super-Jump-only ledge, plus the game's first camera — a `Camera2D` in the
+player scene, smoothed and clamped to bounds the level exports. Not M4
+zone content; this is the sandbox that makes the M0 loop playable at more
+than one screen and proves the camera/HUD/world-space seams. Full spec:
+`docs/briefs/m0-08-level-and-camera.md`.
+
+**Acceptance criteria**
+- [ ] Camera follows the player smoothly and clamps at the level bounds — no void ever visible
+- [ ] Full width traversable; one-way platforms enterable from below; the high ledge needs Super Jump
+- [ ] Dummy + three spread-out Slimes fight as before; HUD fixed; combat text world-space (regression)
+- [ ] `Floor.tscn` deleted; level lives under `levels/`; ADR-0014 + CONTEXT.md entries recorded
+- [ ] Full GUT suite green
+
+**Blocked by:** M0.3 (the Slime exists to place). `ready-for-agent`
 
 ---
 

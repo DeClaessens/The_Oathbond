@@ -23,7 +23,7 @@ wave 1:  M0.1 (GCD)          M0.2 (target selection)
                                   │
 wave 2:                      M0.3 (enemy AI)
                                   │
-wave 3:  M0.4 (XP & levels)      M0.5 (target highlight)
+wave 3:  M0.4 (XP & levels)      M0.5 (target highlight)      M0.8 (level & camera)
 ```
 
 - **Wave 1** — M0.1 and M0.2 have no dependencies. They are independent in
@@ -34,7 +34,11 @@ wave 3:  M0.4 (XP & levels)      M0.5 (target highlight)
   zero-friction option.
 - **Wave 2** — M0.3 needs M0.2 merged.
 - **Wave 3** — M0.4 needs M0.3; M0.5 needs M0.2 and is best after M0.3.
-  M0.4 and M0.5 touch disjoint areas and parallelize cleanly.
+  M0.8 needs M0.3 (the Slime exists to place) and touches only scenes,
+  `main.gd`, and a new `levels/` directory. All three touch disjoint areas
+  and parallelize cleanly — except that M0.8 and any story rewire
+  `main.tscn` positions; if run in parallel with M0.4/M0.5, merge M0.8
+  last or first, not interleaved.
 
 Each prompt's preconditions header repeats its dependency and tells the
 agent to verify it (and stop if unmet), so a mis-dispatched story fails
@@ -56,7 +60,8 @@ When an agent reports done, before merging its branch:
    test files appear in the output; new `class_name` scripts silently skip
    their tests until `--headless --import` refreshes the class cache.
 3. **Docs duties** — M0.2 owes ADR-0013 + CONTEXT.md updates; M0.4 owes
-   the ADR-0012 amendment + CONTEXT.md Experience/Level entries.
+   the ADR-0012 amendment + CONTEXT.md Experience/Level entries; M0.8 owes
+   ADR-0014 + CONTEXT.md Level (world) / Follow Camera entries.
 4. **Feel** — GCD (0.4s) and the Slime's chase/bite are tuned by play, not
    by test. Run the game once before calling the story closed.
 

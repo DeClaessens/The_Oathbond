@@ -80,6 +80,64 @@ func test_scale_outgoing_applies_offensive_modifiers_to_skill_base():
     stats.add_modifier(mod)
     assert_eq(stats.scale_outgoing(50.0, StatKeys.DamageType.EMBER), 75.0)
 
+func test_scale_outgoing_with_flat_dmg_modifier_adds_flat_damage():
+    var flat := StatModifier.new()
+    flat.stat = StatKeys.dmg(StatKeys.damage_type_name(StatKeys.DamageType.EMBER))
+    flat.op = StatModifier.Op.FLAT
+    flat.value = 10.0
+    stats.add_modifier(flat)
+    assert_eq(stats.scale_outgoing(50.0, StatKeys.DamageType.EMBER), 60.0)
+
+func test_scale_outgoing_with_add_pct_dmg_modifier_adds_proportional_damage():
+    var add := StatModifier.new()
+    add.stat = StatKeys.dmg(StatKeys.damage_type_name(StatKeys.DamageType.EMBER))
+    add.op = StatModifier.Op.ADD_PCT
+    add.value = 0.2
+    stats.add_modifier(add)
+    assert_eq(stats.scale_outgoing(50.0, StatKeys.DamageType.EMBER), 60.0)
+
+func test_scale_outgoing_composes_flat_and_add_pct_dmg_modifiers():
+    var flat := StatModifier.new()
+    flat.stat = StatKeys.dmg(StatKeys.damage_type_name(StatKeys.DamageType.EMBER))
+    flat.op = StatModifier.Op.FLAT
+    flat.value = 10.0
+    var add := StatModifier.new()
+    add.stat = StatKeys.dmg(StatKeys.damage_type_name(StatKeys.DamageType.EMBER))
+    add.op = StatModifier.Op.ADD_PCT
+    add.value = 0.2
+    stats.add_modifier(flat)
+    stats.add_modifier(add)
+    assert_eq(stats.scale_outgoing(50.0, StatKeys.DamageType.EMBER), 72.0)
+
+func test_roll_outgoing_with_zero_crit_chance_never_crits():
+    stats.base_stats = {StatKeys.CRIT_CHANCE: 0.0, StatKeys.CRIT_MULTI: 2.0}
+    var packet := stats.roll_outgoing(50.0, StatKeys.DamageType.EMBER)
+    assert_false(packet.is_crit)
+    assert_eq(packet.amount, 50.0)
+
+func test_roll_outgoing_with_full_crit_chance_always_crits_and_scales_by_multi():
+    stats.base_stats = {StatKeys.CRIT_CHANCE: 1.0, StatKeys.CRIT_MULTI: 2.0}
+    var packet := stats.roll_outgoing(50.0, StatKeys.DamageType.EMBER)
+    assert_true(packet.is_crit)
+    assert_eq(packet.amount, 100.0)
+    assert_eq(packet.type, StatKeys.DamageType.EMBER)
+
+func test_roll_outgoing_floors_crit_multi_at_one():
+    stats.base_stats = {StatKeys.CRIT_CHANCE: 1.0, StatKeys.CRIT_MULTI: 0.5}
+    var packet := stats.roll_outgoing(50.0, StatKeys.DamageType.EMBER)
+    assert_true(packet.is_crit)
+    assert_eq(packet.amount, 50.0, "crit_multi below 1.0 must be floored so a crit never deals less than a normal hit")
+
+func test_roll_outgoing_composes_scale_outgoing_before_crit():
+    stats.base_stats = {StatKeys.CRIT_CHANCE: 1.0, StatKeys.CRIT_MULTI: 2.0}
+    var flat := StatModifier.new()
+    flat.stat = StatKeys.dmg(StatKeys.damage_type_name(StatKeys.DamageType.EMBER))
+    flat.op = StatModifier.Op.FLAT
+    flat.value = 10.0
+    stats.add_modifier(flat)
+    var packet := stats.roll_outgoing(50.0, StatKeys.DamageType.EMBER)
+    assert_eq(packet.amount, 120.0, "roll_outgoing must crit-scale scale_outgoing's result, not the raw base")
+
 func test_mitigate_incoming_clamps_resistance_at_0_9():
     stats.base_stats = {
         StatKeys.resist(StatKeys.damage_type_name(StatKeys.DamageType.PHYSICAL)): 5.0,

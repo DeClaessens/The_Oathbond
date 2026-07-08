@@ -21,6 +21,16 @@ func get_stat(stat: StringName) -> float:
 func scale_outgoing(base: float, type: StatKeys.DamageType) -> float:
     return _compose(base, _mods_for(StatKeys.dmg(StatKeys.damage_type_name(type))))
 
+## The single outgoing-damage entry point (ADR-0017): `scale_outgoing` stays
+## the deterministic dmg_<type> seam; crit is a caster-level roll layered
+## outside it so both damage call sites share one code path.
+func roll_outgoing(base: float, type: StatKeys.DamageType) -> DamagePacket:
+    var amount := scale_outgoing(base, type)
+    var is_crit := randf() < clampf(get_stat(StatKeys.CRIT_CHANCE), 0.0, 1.0)
+    if is_crit:
+        amount *= maxf(1.0, get_stat(StatKeys.CRIT_MULTI))
+    return DamagePacket.new(amount, type, is_crit)
+
 func _compose(base: float, mods: Array[StatModifier]) -> float:
     var flat := 0.0
     var add := 0.0

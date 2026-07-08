@@ -43,7 +43,7 @@ func fraction() -> float:
 func is_dead() -> bool:
     return _dead
 
-func apply_damage(raw: float, type: StatKeys.DamageType, source: Node) -> void:
+func apply_damage(raw: float, type: StatKeys.DamageType, source: Node, is_crit: bool = false) -> void:
     if _stats == null:
         push_error("HealthComponent.apply_damage: no StatsComponent resolved, ignoring damage")
         return
@@ -52,7 +52,7 @@ func apply_damage(raw: float, type: StatKeys.DamageType, source: Node) -> void:
     var final_amount := maxf(0.0, _stats.mitigate_incoming(raw, type))
     _current = clampf(_current - final_amount, 0.0, _max)
     health_changed.emit(_current, _max)
-    Events.damage_dealt.emit(source, get_parent(), int(round(final_amount)), type)
+    Events.damage_dealt.emit(source, get_parent(), int(round(final_amount)), type, is_crit)
     if _current <= 0.0:
         _dead = true
         died.emit()
@@ -83,4 +83,15 @@ func _on_stat_changed(stat: StringName, value: float) -> void:
     if stat == StatKeys.MAX_HEALTH:
         _max = value
         _current = minf(_current, _max)
+        health_changed.emit(_current, _max)
+
+func _process(delta: float) -> void:
+    if _stats == null or _dead or _current >= _max:
+        return
+    var regen := _stats.get_stat(StatKeys.HEALTH_REGEN)
+    if regen <= 0.0:
+        return
+    var healed := minf(_current + regen * delta, _max)
+    if healed != _current:
+        _current = healed
         health_changed.emit(_current, _max)

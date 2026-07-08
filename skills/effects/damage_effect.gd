@@ -8,10 +8,10 @@ func execute(ctx: SkillContext) -> bool:
     if ctx.caster_stats == null:
         push_error("DamageEffect: ctx.caster_stats is null, caster has no StatsComponent")
         return false
-    var scaled := ctx.caster_stats.scale_outgoing(base_amount, damage_type)
+    var packet := ctx.caster_stats.roll_outgoing(base_amount, damage_type)
     for target in ctx.targets:
         var health := HealthComponent.of(target)
         if health == null:
             continue
-        health.apply_damage(scaled, damage_type, ctx.caster)
+        health.apply_damage(packet.amount, packet.type, ctx.caster, packet.is_crit)
     return true

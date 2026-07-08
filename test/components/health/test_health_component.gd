@@ -1,12 +1,13 @@
 extends GutTest
 
-func _make_entity(max_health: float, resist_physical: float = 0.0) -> Node:
+func _make_entity(max_health: float, resist_physical: float = 0.0, health_regen: float = 0.0) -> Node:
     var entity := Node.new()
     var stats := StatsComponent.new()
     stats.name = "StatsComponent"
     stats.base_stats = {
         StatKeys.MAX_HEALTH: max_health,
         StatKeys.resist(StatKeys.damage_type_name(StatKeys.DamageType.PHYSICAL)): resist_physical,
+        StatKeys.HEALTH_REGEN: health_regen,
     }
     entity.add_child(stats)
     var health := HealthComponent.new()
@@ -73,7 +74,16 @@ func test_damage_dealt_emits_the_entity_root_as_target_not_owner():
     add_child_autofree(source)
     watch_signals(Events)
     health.apply_damage(30.0, StatKeys.DamageType.PHYSICAL, source)
-    assert_signal_emitted_with_parameters(Events, "damage_dealt", [source, entity, 30, StatKeys.DamageType.PHYSICAL])
+    assert_signal_emitted_with_parameters(Events, "damage_dealt", [source, entity, 30, StatKeys.DamageType.PHYSICAL, false])
+
+func test_apply_damage_forwards_is_crit_to_damage_dealt():
+    var entity := _make_entity(100.0)
+    var health := HealthComponent.of(entity)
+    var source := Node.new()
+    add_child_autofree(source)
+    watch_signals(Events)
+    health.apply_damage(30.0, StatKeys.DamageType.PHYSICAL, source, true)
+    assert_signal_emitted_with_parameters(Events, "damage_dealt", [source, entity, 30, StatKeys.DamageType.PHYSICAL, true])
 
 func test_ready_with_no_sibling_stats_component_does_not_crash():
     var entity := Node.new()
@@ -171,3 +181,39 @@ func test_load_state_emits_health_changed():
     watch_signals(health)
     health.load_state({"current": 55.0})
     assert_signal_emitted_with_parameters(health, "health_changed", [55.0, 100.0])
+
+func test_process_regenerates_health_at_health_regen_rate():
+    var entity := _make_entity(100.0, 0.0, 10.0)
+    var health := HealthComponent.of(entity)
+    health.apply_damage(50.0, StatKeys.DamageType.PHYSICAL, null)
+    health._process(1.0)
+    assert_eq(health.current(), 60.0)
+
+func test_process_does_not_regen_past_max():
+    var entity := _make_entity(100.0, 0.0, 10.0)
+    var health := HealthComponent.of(entity)
+    health.apply_damage(5.0, StatKeys.DamageType.PHYSICAL, null)
+    health._process(1.0)
+    assert_eq(health.current(), 100.0)
+
+func test_process_does_not_regen_while_dead():
+    var entity := _make_entity(50.0, 0.0, 10.0)
+    var health := HealthComponent.of(entity)
+    health.apply_damage(999.0, StatKeys.DamageType.PHYSICAL, null)
+    assert_true(health.is_dead())
+    health._process(1.0)
+    assert_eq(health.current(), 0.0)
+
+func test_process_with_zero_regen_leaves_health_flat():
+    var entity := _make_entity(100.0)
+    var health := HealthComponent.of(entity)
+    health.apply_damage(50.0, StatKeys.DamageType.PHYSICAL, null)
+    health._process(1.0)
+    assert_eq(health.current(), 50.0)
+
+func test_process_does_not_emit_when_already_at_max():
+    var entity := _make_entity(100.0, 0.0, 10.0)
+    var health := HealthComponent.of(entity)
+    watch_signals(health)
+    health._process(1.0)
+    assert_signal_not_emitted(health, "health_changed")

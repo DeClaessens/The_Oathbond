@@ -61,6 +61,39 @@ func test_negative_base_amount_does_not_heal_the_target():
 
     assert_eq(target_health.current(), 100.0)
 
+func test_execute_always_crits_and_scales_by_crit_multi_when_crit_chance_is_one():
+    var effect := DamageEffect.new()
+    effect.base_amount = 50
+    effect.damage_type = StatKeys.DamageType.EMBER
+
+    var caster := Node2D.new()
+    var caster_stats := StatsComponent.new()
+    caster_stats.name = "StatsComponent"
+    caster_stats.base_stats = {StatKeys.CRIT_CHANCE: 1.0, StatKeys.CRIT_MULTI: 2.0}
+    caster.add_child(caster_stats)
+    add_child_autofree(caster)
+
+    var target := Node2D.new()
+    var target_stats := StatsComponent.new()
+    target_stats.name = "StatsComponent"
+    target_stats.base_stats = {StatKeys.MAX_HEALTH: 200.0}
+    target.add_child(target_stats)
+    var target_health := HealthComponent.new()
+    target_health.name = "HealthComponent"
+    target.add_child(target_health)
+    add_child_autofree(target)
+
+    var ctx := SkillContext.new()
+    ctx.caster = caster
+    ctx.caster_stats = caster_stats
+    ctx.targets = [target] as Array[Node]
+
+    watch_signals(Events)
+    effect.execute(ctx)
+
+    assert_eq(target_health.current(), 100.0, "a crit at 2x multi must deal double the scaled base")
+    assert_signal_emitted_with_parameters(Events, "damage_dealt", [caster, target, 100, StatKeys.DamageType.EMBER, true])
+
 func test_execute_fails_without_caster_stats():
     var effect := DamageEffect.new()
     var ctx := SkillContext.new()

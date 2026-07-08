@@ -371,6 +371,157 @@ func test_activate_debits_mana_on_successful_cast():
 
     assert_eq(mana.current(), 70.0)
 
+func test_activate_applies_cooldown_reduction_to_slot_cooldown():
+    var abilities := AbilityComponent.new()
+    abilities.caster = caster
+    add_child_autofree(abilities)
+    var caster_stats := StatsComponent.new()
+    caster_stats.name = "StatsComponent"
+    caster_stats.base_stats = {StatKeys.COOLDOWN_REDUCTION: 0.5}
+    caster.add_child(caster_stats)
+    add_child_autofree(caster)
+
+    var skill := _skill_with_targeting(Skill.Targeting.SELF)
+    skill.cooldown = 10.0
+    skill.effects = [FakeSkillEffect.new()] as Array[SkillEffect]
+    abilities.equip(skill, 0)
+
+    abilities.activate(0)
+
+    assert_eq(abilities.slots[0].cooldown_remaining, 5.0)
+
+func test_cooldown_reduction_is_capped_at_cdr_cap():
+    var abilities := AbilityComponent.new()
+    abilities.caster = caster
+    add_child_autofree(abilities)
+    var caster_stats := StatsComponent.new()
+    caster_stats.name = "StatsComponent"
+    caster_stats.base_stats = {StatKeys.COOLDOWN_REDUCTION: 0.9}
+    caster.add_child(caster_stats)
+    add_child_autofree(caster)
+
+    var skill := _skill_with_targeting(Skill.Targeting.SELF)
+    skill.cooldown = 10.0
+    skill.effects = [FakeSkillEffect.new()] as Array[SkillEffect]
+    abilities.equip(skill, 0)
+
+    abilities.activate(0)
+
+    assert_almost_eq(abilities.slots[0].cooldown_remaining, 10.0 * (1.0 - AbilityComponent.CDR_CAP), 0.0001)
+
+func test_cooldown_reduction_does_not_affect_the_global_cooldown():
+    var abilities := AbilityComponent.new()
+    abilities.caster = caster
+    add_child_autofree(abilities)
+    var caster_stats := StatsComponent.new()
+    caster_stats.name = "StatsComponent"
+    caster_stats.base_stats = {StatKeys.COOLDOWN_REDUCTION: 0.5}
+    caster.add_child(caster_stats)
+    add_child_autofree(caster)
+
+    var skill := _skill_with_targeting(Skill.Targeting.SELF)
+    skill.cooldown = 10.0
+    skill.effects = [FakeSkillEffect.new()] as Array[SkillEffect]
+    abilities.equip(skill, 0)
+
+    watch_signals(abilities)
+    abilities.activate(0)
+
+    assert_signal_emitted_with_parameters(abilities, "global_cooldown_started", [abilities.global_cooldown])
+    assert_eq(abilities._gcd_remaining, abilities.global_cooldown, "CDR must never scale the GCD")
+
+func test_activate_applies_mana_cost_reduction_to_affordability_and_spend():
+    var abilities := AbilityComponent.new()
+    abilities.caster = caster
+    add_child_autofree(abilities)
+    var mana := ManaComponent.new()
+    mana.name = "ManaComponent"
+    var caster_stats := StatsComponent.new()
+    caster_stats.name = "StatsComponent"
+    caster_stats.base_stats = {StatKeys.MAX_MANA: 100.0, StatKeys.MANA_COST_REDUCTION: 0.5}
+    caster.add_child(caster_stats)
+    caster.add_child(mana)
+    add_child_autofree(caster)
+
+    var skill := _skill_with_targeting(Skill.Targeting.SELF)
+    skill.mana_cost = 40.0
+    skill.effects = [FakeSkillEffect.new()] as Array[SkillEffect]
+    abilities.equip(skill, 0)
+
+    abilities.activate(0)
+
+    assert_eq(mana.current(), 80.0, "a 50% MCR must halve the mana actually spent")
+
+func test_mana_cost_reduction_lets_a_cast_through_that_would_otherwise_fail_affordability():
+    var abilities := AbilityComponent.new()
+    abilities.caster = caster
+    add_child_autofree(abilities)
+    var mana := ManaComponent.new()
+    mana.name = "ManaComponent"
+    var caster_stats := StatsComponent.new()
+    caster_stats.name = "StatsComponent"
+    caster_stats.base_stats = {StatKeys.MAX_MANA: 20.0, StatKeys.MANA_COST_REDUCTION: 0.5}
+    caster.add_child(caster_stats)
+    caster.add_child(mana)
+    add_child_autofree(caster)
+
+    var skill := _skill_with_targeting(Skill.Targeting.SELF)
+    skill.mana_cost = 30.0
+    var effect := FakeSkillEffect.new()
+    skill.effects = [effect] as Array[SkillEffect]
+    abilities.equip(skill, 0)
+
+    watch_signals(abilities)
+    abilities.activate(0)
+
+    assert_eq(effect.execute_calls, 1, "effective cost 15 must be affordable with 20 mana")
+    assert_eq(mana.current(), 5.0)
+    assert_signal_emitted(abilities, "skill_activated")
+
+func test_mana_cost_reduction_is_capped_at_mcr_cap():
+    var abilities := AbilityComponent.new()
+    abilities.caster = caster
+    add_child_autofree(abilities)
+    var mana := ManaComponent.new()
+    mana.name = "ManaComponent"
+    var caster_stats := StatsComponent.new()
+    caster_stats.name = "StatsComponent"
+    caster_stats.base_stats = {StatKeys.MAX_MANA: 100.0, StatKeys.MANA_COST_REDUCTION: 0.9}
+    caster.add_child(caster_stats)
+    caster.add_child(mana)
+    add_child_autofree(caster)
+
+    var skill := _skill_with_targeting(Skill.Targeting.SELF)
+    skill.mana_cost = 40.0
+    skill.effects = [FakeSkillEffect.new()] as Array[SkillEffect]
+    abilities.equip(skill, 0)
+
+    abilities.activate(0)
+
+    assert_almost_eq(mana.current(), 100.0 - 40.0 * (1.0 - AbilityComponent.MCR_CAP), 0.0001)
+
+func test_zero_mana_cost_skill_stays_free_with_mana_cost_reduction():
+    var abilities := AbilityComponent.new()
+    abilities.caster = caster
+    add_child_autofree(abilities)
+    var mana := ManaComponent.new()
+    mana.name = "ManaComponent"
+    var caster_stats := StatsComponent.new()
+    caster_stats.name = "StatsComponent"
+    caster_stats.base_stats = {StatKeys.MAX_MANA: 100.0, StatKeys.MANA_COST_REDUCTION: 0.5}
+    caster.add_child(caster_stats)
+    caster.add_child(mana)
+    add_child_autofree(caster)
+
+    var skill := _skill_with_targeting(Skill.Targeting.SELF)
+    skill.mana_cost = 0.0
+    skill.effects = [FakeSkillEffect.new()] as Array[SkillEffect]
+    abilities.equip(skill, 0)
+
+    abilities.activate(0)
+
+    assert_eq(mana.current(), 100.0)
+
 func test_process_emits_skill_ready_once_cooldown_reaches_zero():
     var abilities := AbilityComponent.new()
     abilities.caster = caster

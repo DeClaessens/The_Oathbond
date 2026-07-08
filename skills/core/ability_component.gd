@@ -9,6 +9,8 @@ signal slot_changed(index: int, skill: Skill)
 signal global_cooldown_started(duration: float)
 
 const SLOT_COUNT := 4
+const CDR_CAP := 0.75
+const MCR_CAP := 0.75
 
 @export var global_cooldown: float = 0.5
 
@@ -58,12 +60,16 @@ func activate(index: int, aim_point: Vector2 = Vector2.ZERO) -> void:
         skill_failed.emit(index, &"empty_slot")
         return
 
+    var caster_stats := StatsComponent.of(caster)
+    var mcr := 0.0 if caster_stats == null else clampf(caster_stats.get_stat(StatKeys.MANA_COST_REDUCTION), 0.0, MCR_CAP)
+    var effective_mana_cost := slot.skill.mana_cost * (1.0 - mcr)
+
     var mana := ManaComponent.of(caster)
-    var has_enough_mana := mana == null or mana.can_afford(slot.skill.mana_cost)
+    var has_enough_mana := mana == null or mana.can_afford(effective_mana_cost)
 
     var ctx := SkillContext.new()
     ctx.caster = caster
-    ctx.caster_stats = StatsComponent.of(caster)
+    ctx.caster_stats = caster_stats
     if caster is Node2D:
         ctx.source_position = (caster as Node2D).global_position
     if caster != null and caster.is_inside_tree():
@@ -82,9 +88,10 @@ func activate(index: int, aim_point: Vector2 = Vector2.ZERO) -> void:
             skill_failed.emit(index, &"effect_failed")
             return
 
-    slot.cooldown_remaining = slot.skill.cooldown
+    var cdr := 0.0 if caster_stats == null else clampf(caster_stats.get_stat(StatKeys.COOLDOWN_REDUCTION), 0.0, CDR_CAP)
+    slot.cooldown_remaining = slot.skill.cooldown * (1.0 - cdr)
     if mana != null:
-        mana.spend(slot.skill.mana_cost)
+        mana.spend(effective_mana_cost)
     if not slot.skill.ignores_global_cooldown:
         _gcd_remaining = global_cooldown
         global_cooldown_started.emit(global_cooldown)

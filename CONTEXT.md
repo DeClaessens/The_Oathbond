@@ -69,6 +69,21 @@ _Avoid_: Element, school, Fire (renamed to Ember 2026-07-06)
 A Stat that reduces incoming damage of one Damage Type, capped so a character is never fully immune.
 _Avoid_: Defense, armor
 
+**Crit**:
+A per-hit, caster-side random event: `crit_chance` gates whether it occurs, `crit_multi` scales the payoff. Rolled once when the Damage Packet is built — at cast for instant effects, at spawn for projectiles — never re-rolled and never rolled on the victim's side; Resistance still applies after, in the normal order. See ADR-0017.
+_Avoid_: Critical hit chance/damage as separate ad-hoc fields — they're Stats like any other, composed the same way.
+
+**Damage Packet**:
+The outgoing-damage seam's return value — `{amount, type, is_crit}` (`DamagePacket`) — that replaced the bare scaled float `scale_outgoing` used to return. `scale_outgoing` still does the deterministic per-type `dmg_<type>` scaling (ADR-0004); `StatsComponent.roll_outgoing` wraps it and layers the Crit roll outside, so both damage call sites (`DamageEffect`, `SpawnProjectileEffect`) share one path and the crit flag survives to the Floating Combat Text. See ADR-0017.
+_Avoid_: Reusing a bare float or a Dictionary for the outgoing result.
+
+**Cooldown Reduction**:
+A Stat that scales a skill's own per-slot cooldown down at the moment it starts, capped at `AbilityComponent.CDR_CAP` (0.75). Deliberately never touches the Global Cooldown, which is the game's tempo floor, not a stat-scaled value.
+_Avoid_: Speeding up or shortening the GCD.
+
+**Mana-Cost Reduction**:
+A Stat that scales a skill's mana cost down at the moment of spend, capped at `AbilityComponent.MCR_CAP` (0.75). The same reduced cost is used for the affordability check and the actual spend so the two can never disagree.
+
 ### Identity
 
 **Faction**:
@@ -114,6 +129,10 @@ _Avoid_: MP, magic points, energy
 **Mana Bar**:
 The on-screen readout of a character's Mana — a bar stacked directly beneath the Health Bar, always visible since Mana depletes routinely during normal play (unlike the Health Bar, which stays hidden until the first hit). Purely presentational, same role as Health Bar.
 _Avoid_: MP bar
+
+**Health Regen**:
+A Stat, base 0, that continuously refills Health up to Max Health at its rate per second — mirrors Mana Regen's `_process` loop on the sibling Resource Pool, never regenerates a dead character, and only emits `health_changed` when the value actually moves.
+_Avoid_: Free regen by default — it is purely an affix payoff.
 
 **Floating Combat Text**:
 A short-lived number that appears at a character's position when a hit lands, drifts upward, and fades — each hit spawns its own independent instance. Triggered globally off `Events.damage_dealt`, not owned by or bound to any single entity.

@@ -17,14 +17,15 @@ func execute(ctx: SkillContext) -> bool:
         push_error("SpawnProjectileEffect: ctx.caster_stats is null, caster has no StatsComponent")
         return false
 
-    var scaled := ctx.caster_stats.scale_outgoing(base_damage, damage_type)
+    var packet := ctx.caster_stats.roll_outgoing(base_damage, damage_type)
 
     var p := projectile_scene.instantiate() as Projectile
     p.caster = ctx.caster
     p.direction = ctx.aim_direction
     p.speed = speed
-    p.damage = scaled
-    p.damage_type = damage_type
+    p.damage = packet.amount
+    p.damage_type = packet.type
+    p.is_crit = packet.is_crit
 
     ctx.spawn_parent.add_child(p)
     p.global_position = ctx.source_position

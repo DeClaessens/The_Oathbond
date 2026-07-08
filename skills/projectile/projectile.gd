@@ -6,6 +6,7 @@ var direction: Vector2 = Vector2.RIGHT
 var speed: float = 600.0
 var damage: float = 50.0
 var damage_type: StatKeys.DamageType = StatKeys.DamageType.PHYSICAL
+var is_crit: bool = false
 
 @export var lifetime: float = 3.0
 
@@ -24,5 +25,5 @@ func _on_body_entered(body: Node) -> void:
         return
     var health := HealthComponent.of(body)
     if health != null:
-        health.apply_damage(damage, damage_type, caster)
+        health.apply_damage(damage, damage_type, caster, is_crit)
     queue_free()

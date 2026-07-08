@@ -13,7 +13,7 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_eae6q"]
 size = Vector2(127, 128)
 
-[node name="Player" type="CharacterBody2D" groups=["player"] unique_id=17166481]
+[node name="Player" type="CharacterBody2D" unique_id=17166481 groups=["player"]]
 collision_layer = 2
 script = ExtResource("1_kpjcp")
 
@@ -28,6 +28,8 @@ shape = SubResource("RectangleShape2D_eae6q")
 [node name="StatsComponent" type="Node" parent="." unique_id=2050525787]
 script = ExtResource("2_stats")
 base_stats = {
+"crit_chance": 0.05,
+"crit_multi": 1.5,
 "jump_velocity": 800.0,
 "mana_regen": 10.0,
 "max_health": 100.0,

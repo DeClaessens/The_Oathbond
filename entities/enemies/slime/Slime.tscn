@@ -28,6 +28,8 @@ shape = SubResource("CircleShape2D_slime")
 [node name="StatsComponent" type="Node" parent="."]
 script = ExtResource("2_stats")
 base_stats = {
+"crit_chance": 0.05,
+"crit_multi": 1.5,
 "dmg_physical": 8.0,
 "max_health": 40.0,
 "move_speed": 150.0

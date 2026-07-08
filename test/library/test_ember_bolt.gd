@@ -40,6 +40,49 @@ func test_ember_bolt_projectile_deals_ember_damage_on_hit():
 
     assert_eq(target_health.current(), 50.0)
 
+func test_ember_bolt_projectile_carries_the_crit_flag_from_spawn_to_collision():
+    var skill: Skill = load("res://skills/library/ember_bolt.tres")
+    var effect: SpawnProjectileEffect = skill.effects[0]
+
+    var caster := Node2D.new()
+    var caster_stats := StatsComponent.new()
+    caster_stats.name = "StatsComponent"
+    caster_stats.base_stats = {StatKeys.CRIT_CHANCE: 1.0, StatKeys.CRIT_MULTI: 2.0}
+    caster.add_child(caster_stats)
+    add_child_autofree(caster)
+
+    var target := Node2D.new()
+    var target_stats := StatsComponent.new()
+    target_stats.name = "StatsComponent"
+    target_stats.base_stats = {StatKeys.MAX_HEALTH: 200.0}
+    target.add_child(target_stats)
+    var target_health := HealthComponent.new()
+    target_health.name = "HealthComponent"
+    target.add_child(target_health)
+    add_child_autofree(target)
+
+    var spawn_parent := Node.new()
+    add_child_autofree(spawn_parent)
+
+    var ctx := SkillContext.new()
+    ctx.caster = caster
+    ctx.caster_stats = caster_stats
+    ctx.source_position = Vector2.ZERO
+    ctx.aim_direction = Vector2.RIGHT
+    ctx.spawn_parent = spawn_parent
+
+    effect.execute(ctx)
+
+    var projectile: Projectile = spawn_parent.get_child(0)
+    assert_true(projectile.is_crit, "crit rolls at spawn, not at collision")
+    assert_eq(projectile.damage, 100.0)
+
+    watch_signals(Events)
+    projectile._on_body_entered(target)
+
+    assert_eq(target_health.current(), 100.0)
+    assert_signal_emitted_with_parameters(Events, "damage_dealt", [caster, target, 100, StatKeys.DamageType.EMBER, true])
+
 func test_ember_bolt_projectile_ignores_its_own_caster():
     var skill: Skill = load("res://skills/library/ember_bolt.tres")
     var effect: SpawnProjectileEffect = skill.effects[0]

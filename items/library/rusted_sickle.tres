@@ -1,14 +1,13 @@
-[gd_resource type="Resource" script_class="ItemDefinition" format=3]
+[gd_resource type="Resource" script_class="ItemDefinition" format=3 uid="uid://cmg8yo2nghxxr"]
 
-[ext_resource type="Script" path="res://items/core/item_definition.gd" id="1_def"]
-[ext_resource type="Script" path="res://items/core/affix_entry.gd" id="2_entry"]
-[ext_resource type="Resource" path="res://items/pools/affix_pool_weapon.tres" id="3_pool"]
+[ext_resource type="Script" uid="uid://dea0xaj06u1ro" path="res://items/core/item_definition.gd" id="1_def"]
+[ext_resource type="Script" uid="uid://c5i4rvfluj1et" path="res://items/core/affix_entry.gd" id="2_entry"]
+[ext_resource type="Resource" uid="uid://115urpwgboux" path="res://items/pools/affix_pool_weapon.tres" id="3_pool"]
 [ext_resource type="Texture2D" uid="uid://in2rn1m1q1ge" path="res://icon.svg" id="4_icon"]
 
 [sub_resource type="Resource" id="implicit_physical"]
 script = ExtResource("2_entry")
 stat = &"dmg_physical"
-op = 0
 min_value = 6.0
 max_value = 6.0
 
@@ -17,8 +16,5 @@ script = ExtResource("1_def")
 id = &"rusted_sickle"
 display_name = "Rusted Sickle"
 icon = ExtResource("4_icon")
-slot = 0
-material = 0
 implicit_mods = Array[ExtResource("2_entry")]([SubResource("implicit_physical")])
 affix_pool = ExtResource("3_pool")
-attribute_requirement = {}

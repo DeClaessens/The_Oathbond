@@ -5,10 +5,10 @@
 [ext_resource type="PackedScene" uid="uid://567ev6herjty" path="res://entities/player/Player.tscn" id="2_h2yge"]
 [ext_resource type="Script" uid="uid://bh6mp3segpcbt" path="res://main.gd" id="3_main"]
 [ext_resource type="PackedScene" uid="uid://57fsvgs5asb5" path="res://ui/skill_bar/skill_bar.tscn" id="4_hud"]
-[ext_resource type="PackedScene" path="res://ui/attributes/attributes_panel.tscn" id="7_attributes"]
 [ext_resource type="PackedScene" uid="uid://nkgyvnse3x0t" path="res://entities/enemies/training_dummy/TrainingDummy.tscn" id="5_lquwl"]
 [ext_resource type="PackedScene" path="res://vfx/floating_combat_text/combat_text_spawner.tscn" id="6_combat_text"]
-[ext_resource type="PackedScene" path="res://ui/inventory/inventory_panel.tscn" id="7_inventory"]
+[ext_resource type="PackedScene" path="res://ui/attributes/attributes_panel.tscn" id="7_attributes"]
+[ext_resource type="PackedScene" path="res://ui/inventory/inventory_panel.tscn" id="9_kek77"]
 
 [node name="Main" type="Node2D" unique_id=1234891808]
 script = ExtResource("3_main")
@@ -20,14 +20,12 @@ position = Vector2(250, 536)
 
 [node name="SkillBarHUD" parent="." unique_id=1712213688 instance=ExtResource("4_hud")]
 
-[node name="AttributesPanel" parent="." instance=ExtResource("7_attributes")]
+[node name="AttributesPanel" parent="." unique_id=151642165 instance=ExtResource("7_attributes")]
 
 [node name="TrainingDummy" parent="." unique_id=1290600078 instance=ExtResource("5_lquwl")]
 position = Vector2(650, 536)
 
 [node name="CombatTextSpawner" parent="." unique_id=1151528170 instance=ExtResource("6_combat_text")]
-
-[node name="InventoryPanel" parent="." instance=ExtResource("7_inventory")]
 
 [node name="Slime1" parent="." unique_id=1776848909 instance=ExtResource("2_272bh")]
 position = Vector2(1600, 552)
@@ -37,3 +35,5 @@ position = Vector2(2800, 552)
 
 [node name="Slime3" parent="." unique_id=1714204794 instance=ExtResource("2_272bh")]
 position = Vector2(4200, 552)
+
+[node name="InventoryPanel" parent="." unique_id=737066479 instance=ExtResource("9_kek77")]

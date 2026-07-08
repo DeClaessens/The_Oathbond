@@ -12,3 +12,5 @@ func _ready() -> void:
     camera.limit_top = int(level.bounds.position.y)
     camera.limit_right = int(level.bounds.end.x)
     camera.limit_bottom = int(level.bounds.end.y)
+
+    SaveManager.load_character(player)

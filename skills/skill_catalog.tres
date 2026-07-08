@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="SkillCatalog" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://skills/core/skill_catalog.gd" id="1_catalog"]
+[ext_resource type="Script" path="res://skills/core/skill.gd" id="2_skill"]
+[ext_resource type="Resource" path="res://skills/library/sprint.tres" id="3_sprint"]
+[ext_resource type="Resource" path="res://skills/library/super_jump.tres" id="4_super_jump"]
+[ext_resource type="Resource" path="res://skills/library/spark.tres" id="5_spark"]
+[ext_resource type="Resource" path="res://skills/library/smite.tres" id="6_smite"]
+[ext_resource type="Resource" path="res://skills/library/ember_bolt.tres" id="7_ember_bolt"]
+[ext_resource type="Resource" path="res://skills/library/slime_bite.tres" id="8_slime_bite"]
+
+[resource]
+script = ExtResource("1_catalog")
+skills = Array[ExtResource("2_skill")]([ExtResource("3_sprint"), ExtResource("4_super_jump"), ExtResource("5_spark"), ExtResource("6_smite"), ExtResource("7_ember_bolt"), ExtResource("8_slime_bite")])

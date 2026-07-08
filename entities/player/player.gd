@@ -33,6 +33,38 @@ func learn_skill(skill: Skill) -> void:
     known_skills.append(skill)
     skill_learned.emit(skill)
 
+## Player-level character-file section: known/equipped skills persist as
+## Skill.id through the SkillCatalog, never as resource paths (ADR-0015).
+func save_skill_state() -> Dictionary:
+    var known: Array = []
+    for skill in known_skills:
+        known.append(String(skill.id))
+    var equipped: Array = []
+    for slot in abilities.slots:
+        equipped.append(String(slot.skill.id) if slot != null else null)
+    return {"known": known, "equipped": equipped}
+
+## Loading replaces the authored default kit: clears known_skills, learns
+## every known id via the catalog, unequips all slots, then re-equips each
+## non-null slot by id.
+func load_skill_state(data: Dictionary) -> void:
+    known_skills.clear()
+    for id in data.get("known", []):
+        var skill := SkillCatalog.by_id(StringName(id))
+        if skill != null:
+            learn_skill(skill)
+
+    for i in AbilityComponent.SLOT_COUNT:
+        abilities.unequip(i)
+    var equipped: Array = data.get("equipped", [])
+    for i in equipped.size():
+        var id = equipped[i]
+        if id == null:
+            continue
+        var skill := SkillCatalog.by_id(StringName(id))
+        if skill != null:
+            abilities.equip(skill, i)
+
 func _physics_process(delta: float) -> void:
     if not is_on_floor():
         velocity.y += gravity * delta

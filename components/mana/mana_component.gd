@@ -49,6 +49,16 @@ func restore_full() -> void:
     _current = _max
     mana_changed.emit(_current, _max)
 
+## Character-file section: current only -- max is always derived from Stats
+## (ADR-0015).
+func save_state() -> Dictionary:
+    return {"current": _current}
+
+func load_state(data: Dictionary) -> void:
+    var current: float = data.get("current", 0.0)
+    _current = clampf(current, 0.0, _max)
+    mana_changed.emit(_current, _max)
+
 func _process(delta: float) -> void:
     if _stats == null or _current >= _max:
         return

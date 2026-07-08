@@ -180,3 +180,58 @@ func test_kill_through_ember_bolt_projectile_credits_the_caster():
 
     assert_true(target_health.is_dead())
     assert_eq(caster_xp.xp(), 10, "a lethal ember bolt must credit the casting character, not the projectile")
+
+func test_save_state_returns_level_and_xp():
+    var entity := _make_character()
+    var xp := ExperienceComponent.of(entity)
+    xp.award_xp(xp.xp_to_next(1) + 5)
+
+    assert_eq(xp.save_state(), {"level": 2, "xp": 5})
+
+func test_load_state_replays_growth_without_the_level_up_full_restore():
+    var entity := _make_character(100.0, 50.0)
+    var xp := ExperienceComponent.of(entity)
+    var stats := StatsComponent.of(entity)
+    var health := HealthComponent.of(entity)
+    health.apply_damage(90.0, StatKeys.DamageType.PHYSICAL, null)
+
+    xp.load_state({"level": 3, "xp": 7})
+
+    assert_eq(xp.level(), 3)
+    assert_eq(xp.xp(), 7)
+    assert_eq(stats.get_stat(StatKeys.MAX_HEALTH), 120.0, "growth for levels 2 and 3 must be replayed")
+    assert_eq(health.current(), 10.0, "load_state must never call the level-up full restore")
+
+func test_load_state_at_level_one_applies_no_growth():
+    var entity := _make_character()
+    var xp := ExperienceComponent.of(entity)
+    var stats := StatsComponent.of(entity)
+
+    xp.load_state({"level": 1, "xp": 0})
+
+    assert_eq(stats.get_stat(StatKeys.MAX_HEALTH), 100.0)
+
+func test_load_state_emits_experience_changed():
+    var entity := _make_character()
+    var xp := ExperienceComponent.of(entity)
+    watch_signals(xp)
+
+    xp.load_state({"level": 2, "xp": 3})
+
+    assert_signal_emitted_with_parameters(xp, "experience_changed", [3, xp.xp_to_next(2)])
+
+func test_replay_equivalence_load_state_matches_award_xp_to_the_same_level():
+    var played := _make_character()
+    var played_xp := ExperienceComponent.of(played)
+    var played_stats := StatsComponent.of(played)
+    for level in range(1, 5):
+        played_xp.award_xp(played_xp.xp_to_next(played_xp.level()))
+
+    var loaded := _make_character()
+    var loaded_xp := ExperienceComponent.of(loaded)
+    var loaded_stats := StatsComponent.of(loaded)
+    loaded_xp.load_state({"level": played_xp.level(), "xp": played_xp.xp()})
+
+    assert_eq(loaded_xp.level(), played_xp.level())
+    assert_eq(loaded_stats.get_stat(StatKeys.MAX_HEALTH), played_stats.get_stat(StatKeys.MAX_HEALTH))
+    assert_eq(loaded_xp.save_state(), played_xp.save_state(), "a save->load->save cycle must be a document fixed point")

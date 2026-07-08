@@ -135,3 +135,39 @@ func test_restore_full_resets_health_and_death_state():
     watch_signals(health)
     health.apply_damage(999.0, StatKeys.DamageType.PHYSICAL, null)
     assert_signal_emitted(health, "died", "a restored character must be able to die again")
+
+func test_save_state_returns_current():
+    var entity := _make_entity(100.0)
+    var health := HealthComponent.of(entity)
+    health.apply_damage(30.0, StatKeys.DamageType.PHYSICAL, null)
+    assert_eq(health.save_state(), {"current": 70.0})
+
+func test_load_state_clamps_current_to_max():
+    var entity := _make_entity(100.0)
+    var health := HealthComponent.of(entity)
+    health.load_state({"current": 4000.0})
+    assert_eq(health.current(), 100.0)
+
+func test_load_state_sets_partial_current_and_clears_death():
+    var entity := _make_entity(100.0)
+    var health := HealthComponent.of(entity)
+    health.apply_damage(60.0, StatKeys.DamageType.PHYSICAL, null)
+    health.load_state({"current": 40.0})
+    assert_eq(health.current(), 40.0)
+    assert_false(health.is_dead())
+
+func test_load_state_with_non_positive_current_restores_full_and_clears_death():
+    var entity := _make_entity(100.0)
+    var health := HealthComponent.of(entity)
+    health.apply_damage(999.0, StatKeys.DamageType.PHYSICAL, null)
+    assert_true(health.is_dead())
+    health.load_state({"current": -5.0})
+    assert_eq(health.current(), 100.0)
+    assert_false(health.is_dead())
+
+func test_load_state_emits_health_changed():
+    var entity := _make_entity(100.0)
+    var health := HealthComponent.of(entity)
+    watch_signals(health)
+    health.load_state({"current": 55.0})
+    assert_signal_emitted_with_parameters(health, "health_changed", [55.0, 100.0])

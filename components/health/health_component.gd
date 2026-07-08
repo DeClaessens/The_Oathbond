@@ -63,6 +63,22 @@ func restore_full() -> void:
     _current = _max
     health_changed.emit(_current, _max)
 
+## Character-file section: current only -- max is always derived from Stats
+## and _dead is a transient latch, neither survives to disk (ADR-0015).
+func save_state() -> Dictionary:
+    return {"current": _current}
+
+## A dead character is never resumed dead: current <= 0.0 loads as a full
+## restore instead of a resumed corpse.
+func load_state(data: Dictionary) -> void:
+    var current: float = data.get("current", 0.0)
+    if current <= 0.0:
+        restore_full()
+        return
+    _dead = false
+    _current = clampf(current, 0.0, _max)
+    health_changed.emit(_current, _max)
+
 func _on_stat_changed(stat: StringName, value: float) -> void:
     if stat == StatKeys.MAX_HEALTH:
         _max = value

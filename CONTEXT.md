@@ -126,8 +126,26 @@ A quantity a character earns by killing others, tracked by `ExperienceComponent`
 _Avoid_: XP as a Stat (it isn't modified by buffs — it's a running count, not a composed value)
 
 **Character Level**:
-A character's permanent progression tier, starting at 1 and rising when accumulated Experience crosses `xp_to_next(level)`. Each level-up grants permanent flat growth (`+Max Health`, `+Max Mana`) applied as stacking Modifiers — never by mutating `base_stats` — plus a full restore of Health and Mana. Distinct from the world **Level** above — same word, unrelated concept; say "character level" or "the level scene" when ambiguous. Not persisted yet (M1).
+A character's permanent progression tier, starting at 1 and rising when accumulated Experience crosses `xp_to_next(level)`. Each level-up grants permanent flat growth (`+Max Health`, `+Max Mana`) applied as stacking Modifiers — never by mutating `base_stats` — plus a full restore of Health and Mana. Distinct from the world **Level** above — same word, unrelated concept; say "character level" or "the level scene" when ambiguous. Persisted as `level`/`xp` only (M1); the growth Modifiers themselves are never serialized, they're replayed from `level` on load (see Save Gate).
 _Avoid_: Player Level (levels apply to any character, not just the player), XP Level
+
+### Persistence
+
+**Character File**:
+The single JSON document at `user://saves/characters/<id>.json` holding one character's everything — level, XP, current Health and Mana, known/equipped Skill ids. Written by `SaveManager` on quit, composed from each stateful Component's own `save_state()`; loaded and passed through the Save Gate before any `load_state()` runs. M1 has exactly one character, id `default`. What it deliberately excludes — max pools, timed Modifiers, cooldowns, position — is dropped because it's either derived or transient (ADR-0015).
+_Avoid_: Save file (ambiguous with Account File), profile
+
+**Account File**:
+The JSON document at `user://saves/account.json` holding account-wide state — today just the character roster, later Bonds and oath collections (M6+). Survives character deletion; `SaveManager.delete_character` removes a Character File and its roster entry but never touches this file.
+_Avoid_: Profile, save slot
+
+**Save Gate**:
+`SaveValidator.validate_character`, the single point every Character File passes through before any Component's `load_state()` runs, regardless of where the document came from (disk, a future import, a future migration). Sanitizes rather than rejects: unknown Skill ids are dropped, an equipped id missing from known becomes an empty slot, numbers are clamped to legal ranges, and each repair emits a `push_warning`. M2 gear rolls, M3 spliced Skills, and M5 oath state each extend this one gate rather than inventing their own (ADR-0015).
+_Avoid_: Sanitizer, schema check (this is specifically the load-bearing single gate, not general input validation)
+
+**Skill Catalog**:
+`SkillCatalog`, the authored `res://skills/skill_catalog.tres` resource listing every Skill asset under `skills/library/` (enemy Skills included), and the only legal way to resolve a persisted Skill id back into a `Skill` (`SkillCatalog.by_id`). Exists because Skills serialize as `Skill.id`, never as resource paths — paths break on refactors. Duplicate or empty ids in the catalog are authoring errors, surfaced with `push_error`.
+_Avoid_: Skill registry, skill database
 
 ### World
 

@@ -85,3 +85,34 @@ func test_restore_full_refills_current_mana():
     mana.spend(60.0)
     mana.restore_full()
     assert_eq(mana.current(), 100.0)
+
+func test_save_state_returns_current():
+    var entity := _make_entity(100.0)
+    var mana := ManaComponent.of(entity)
+    mana.spend(35.0)
+    assert_eq(mana.save_state(), {"current": 65.0})
+
+func test_load_state_clamps_to_max():
+    var entity := _make_entity(100.0)
+    var mana := ManaComponent.of(entity)
+    mana.load_state({"current": 4000.0})
+    assert_eq(mana.current(), 100.0)
+
+func test_load_state_clamps_negative_to_zero():
+    var entity := _make_entity(100.0)
+    var mana := ManaComponent.of(entity)
+    mana.load_state({"current": -20.0})
+    assert_eq(mana.current(), 0.0)
+
+func test_load_state_sets_partial_current():
+    var entity := _make_entity(100.0)
+    var mana := ManaComponent.of(entity)
+    mana.load_state({"current": 30.0})
+    assert_eq(mana.current(), 30.0)
+
+func test_load_state_emits_mana_changed():
+    var entity := _make_entity(100.0)
+    var mana := ManaComponent.of(entity)
+    watch_signals(mana)
+    mana.load_state({"current": 20.0})
+    assert_signal_emitted_with_parameters(mana, "mana_changed", [20.0, 100.0])

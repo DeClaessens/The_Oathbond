@@ -34,7 +34,7 @@ func level() -> int:
 func xp() -> int:
     return _xp
 
-func xp_to_next(for_level: int) -> int:
+static func xp_to_next(for_level: int) -> int:
     return roundi(50.0 * pow(for_level, 1.5))
 
 func award_xp(amount: int) -> void:
@@ -50,26 +50,46 @@ func award_xp(amount: int) -> void:
         to_next = xp_to_next(_level)
     experience_changed.emit(_xp, to_next)
 
+## Character-file section: level and in-level XP only. Growth is replayed
+## from level on load, never serialized (ADR-0015) -- _mods entries are
+## unkeyed and source refs don't survive JSON.
+func save_state() -> Dictionary:
+    return {"level": _level, "xp": _xp}
+
+## Sets level/xp directly and replays growth modifiers for every level above
+## 1 -- never calls the level-up full restore, so pools' own load_state
+## (which runs after this, per the fixed load order) owns the persisted
+## current values.
+func load_state(data: Dictionary) -> void:
+    _level = int(data.get("level", 1))
+    _xp = int(data.get("xp", 0))
+    for level in range(2, _level + 1):
+        _apply_growth_modifiers()
+    experience_changed.emit(_xp, xp_to_next(_level))
+
 func _apply_level_up_growth() -> void:
-    if _stats != null:
-        var health_mod := StatModifier.new()
-        health_mod.stat = StatKeys.MAX_HEALTH
-        health_mod.op = StatModifier.Op.FLAT
-        health_mod.value = HEALTH_GROWTH_PER_LEVEL
-        _stats.add_modifier(health_mod)
-
-        var mana_mod := StatModifier.new()
-        mana_mod.stat = StatKeys.MAX_MANA
-        mana_mod.op = StatModifier.Op.FLAT
-        mana_mod.value = MANA_GROWTH_PER_LEVEL
-        _stats.add_modifier(mana_mod)
-
+    _apply_growth_modifiers()
     var health := HealthComponent.of(get_parent())
     if health != null:
         health.restore_full()
     var mana := ManaComponent.of(get_parent())
     if mana != null:
         mana.restore_full()
+
+func _apply_growth_modifiers() -> void:
+    if _stats == null:
+        return
+    var health_mod := StatModifier.new()
+    health_mod.stat = StatKeys.MAX_HEALTH
+    health_mod.op = StatModifier.Op.FLAT
+    health_mod.value = HEALTH_GROWTH_PER_LEVEL
+    _stats.add_modifier(health_mod)
+
+    var mana_mod := StatModifier.new()
+    mana_mod.stat = StatKeys.MAX_MANA
+    mana_mod.op = StatModifier.Op.FLAT
+    mana_mod.value = MANA_GROWTH_PER_LEVEL
+    _stats.add_modifier(mana_mod)
 
 func _on_character_died(victim: Node, killer: Node) -> void:
     if killer == null or killer == victim or killer != get_parent():

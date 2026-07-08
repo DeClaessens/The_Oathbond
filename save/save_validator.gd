@@ -22,6 +22,7 @@ static func validate_character(data: Dictionary) -> Dictionary:
     out["health"] = _validate_pool(src.get("health"), "health")
     out["mana"] = _validate_pool(src.get("mana"), "mana")
     out["skills"] = _validate_skills(src.get("skills"))
+    out["inventory"] = _validate_inventory(src.get("inventory"))
     return out
 
 static func _validate_experience(section) -> Dictionary:
@@ -157,8 +158,74 @@ static func _validate_skills(section) -> Dictionary:
 
     return {"known": known, "equipped": equipped}
 
+## Inventory is an array section (ADR-0015, M2.3): each entry whose def_id the
+## catalog can't resolve is dropped, malformed affixes are dropped, and a
+## rarity out of the enum range is clamped -- one warning per repair.
+static func _validate_inventory(section) -> Array:
+    if section == null:
+        return []
+    if not section is Array:
+        push_warning("SaveValidator: inventory is not an array, defaulting to empty")
+        return []
+    var raw: Array = section
+    var out: Array = []
+    for entry in raw:
+        if typeof(entry) != TYPE_DICTIONARY:
+            push_warning("SaveValidator: inventory entry is not a dictionary, dropped")
+            continue
+        var def_id = entry.get("def_id", "")
+        if not _is_string_key(def_id) or ItemCatalog.by_id(StringName(def_id)) == null:
+            push_warning("SaveValidator: inventory def_id %s does not resolve, entry dropped" % str(def_id))
+            continue
+
+        var rarity_raw = entry.get("rarity", ItemTypes.Rarity.COMMON)
+        var rarity: int
+        if _is_numeric(rarity_raw):
+            rarity = int(rarity_raw)
+        else:
+            push_warning("SaveValidator: inventory rarity %s is not numeric, defaulting to Common" % str(rarity_raw))
+            rarity = ItemTypes.Rarity.COMMON
+        var clamped := clampi(rarity, ItemTypes.Rarity.COMMON, ItemTypes.Rarity.HEIRLOOM)
+        if clamped != rarity:
+            push_warning("SaveValidator: inventory rarity %d out of range, clamped to %d" % [rarity, clamped])
+            rarity = clamped
+
+        out.append({
+            "def_id": String(def_id),
+            "rarity": rarity,
+            "affixes": _validate_affixes(entry.get("affixes")),
+        })
+    return out
+
+static func _validate_affixes(value) -> Array:
+    if not value is Array:
+        if value != null:
+            push_warning("SaveValidator: inventory affixes is not an array, dropped")
+        return []
+    var raw: Array = value
+    var out: Array = []
+    for a in raw:
+        if typeof(a) != TYPE_DICTIONARY:
+            push_warning("SaveValidator: malformed affix dropped")
+            continue
+        var stat = a.get("stat", "")
+        var op = a.get("op", null)
+        var val = a.get("value", null)
+        if not _is_string_key(stat) or String(stat) == "" or not _is_numeric(op) or not _is_numeric(val):
+            push_warning("SaveValidator: malformed affix dropped")
+            continue
+        var op_int := int(op)
+        if op_int < StatModifier.Op.FLAT or op_int > StatModifier.Op.MULT_PCT:
+            push_warning("SaveValidator: affix op %d out of range, dropped" % op_int)
+            continue
+        out.append({"stat": String(stat), "op": op_int, "value": float(val)})
+    return out
+
 static func _is_numeric(value) -> bool:
     return typeof(value) == TYPE_INT or typeof(value) == TYPE_FLOAT
 
 static func _is_skill_id(value) -> bool:
+    return typeof(value) == TYPE_STRING or typeof(value) == TYPE_STRING_NAME
+
+static func _is_string_key(value) -> bool:
     return typeof(value) == TYPE_STRING or typeof(value) == TYPE_STRING_NAME

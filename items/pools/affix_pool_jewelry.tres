@@ -1,0 +1,85 @@
+[gd_resource type="Resource" script_class="AffixPool" format=3]
+
+[ext_resource type="Script" path="res://items/core/affix_pool.gd" id="1_pool"]
+[ext_resource type="Script" path="res://items/core/affix_entry.gd" id="2_entry"]
+
+[sub_resource type="Resource" id="j_cooldown_reduction"]
+script = ExtResource("2_entry")
+stat = &"cooldown_reduction"
+op = 0
+min_value = 0.03
+max_value = 0.1
+
+[sub_resource type="Resource" id="j_mana_cost_reduction"]
+script = ExtResource("2_entry")
+stat = &"mana_cost_reduction"
+op = 0
+min_value = 0.03
+max_value = 0.1
+
+[sub_resource type="Resource" id="j_max_mana"]
+script = ExtResource("2_entry")
+stat = &"max_mana"
+op = 0
+min_value = 5.0
+max_value = 25.0
+
+[sub_resource type="Resource" id="j_mana_regen"]
+script = ExtResource("2_entry")
+stat = &"mana_regen"
+op = 0
+min_value = 1.0
+max_value = 5.0
+
+[sub_resource type="Resource" id="j_resist_physical"]
+script = ExtResource("2_entry")
+stat = &"resist_physical"
+op = 0
+min_value = 0.03
+max_value = 0.1
+
+[sub_resource type="Resource" id="j_resist_ember"]
+script = ExtResource("2_entry")
+stat = &"resist_ember"
+op = 0
+min_value = 0.03
+max_value = 0.1
+
+[sub_resource type="Resource" id="j_resist_radiance"]
+script = ExtResource("2_entry")
+stat = &"resist_radiance"
+op = 0
+min_value = 0.03
+max_value = 0.1
+
+[sub_resource type="Resource" id="j_resist_rot"]
+script = ExtResource("2_entry")
+stat = &"resist_rot"
+op = 0
+min_value = 0.03
+max_value = 0.1
+
+[sub_resource type="Resource" id="j_might"]
+script = ExtResource("2_entry")
+stat = &"might"
+op = 0
+min_value = 1.0
+max_value = 4.0
+
+[sub_resource type="Resource" id="j_grace"]
+script = ExtResource("2_entry")
+stat = &"grace"
+op = 0
+min_value = 1.0
+max_value = 4.0
+
+[sub_resource type="Resource" id="j_wit"]
+script = ExtResource("2_entry")
+stat = &"wit"
+op = 0
+min_value = 1.0
+max_value = 4.0
+
+[resource]
+script = ExtResource("1_pool")
+entries = Array[ExtResource("2_entry")]([SubResource("j_cooldown_reduction"), SubResource("j_mana_cost_reduction"), SubResource("j_max_mana"), SubResource("j_mana_regen"), SubResource("j_resist_physical"), SubResource("j_resist_ember"), SubResource("j_resist_radiance"), SubResource("j_resist_rot"), SubResource("j_might"), SubResource("j_grace"), SubResource("j_wit")])

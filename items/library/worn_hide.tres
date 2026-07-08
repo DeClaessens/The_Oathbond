@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ItemDefinition" format=3]
+
+[ext_resource type="Script" path="res://items/core/item_definition.gd" id="1_def"]
+[ext_resource type="Resource" path="res://items/pools/affix_pool_armor.tres" id="2_pool"]
+[ext_resource type="Texture2D" uid="uid://in2rn1m1q1ge" path="res://icon.svg" id="3_icon"]
+
+[resource]
+script = ExtResource("1_def")
+id = &"worn_hide"
+display_name = "Worn Hide"
+icon = ExtResource("3_icon")
+slot = 3
+material = 2
+affix_pool = ExtResource("2_pool")
+attribute_requirement = {}

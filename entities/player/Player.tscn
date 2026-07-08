@@ -8,7 +8,7 @@
 [ext_resource type="Script" uid="uid://csh3j1bsplswt" path="res://components/mana/mana_component.gd" id="5_mana"]
 [ext_resource type="Script" uid="uid://3bx2m8mbr6qn" path="res://components/faction/faction_component.gd" id="7_fmb3c"]
 [ext_resource type="Script" uid="uid://b45ru5r0qj4xp" path="res://components/experience/experience_component.gd" id="8_experience"]
-[ext_resource type="Script" path="res://components/attributes/attributes_component.gd" id="9_attributes"]
+[ext_resource type="Script" path="res://components/inventory/inventory_component.gd" id="9_inventory"]
 [ext_resource type="Script" uid="uid://cv17uliwl1v2w" path="res://components/highlight/target_preview_component.gd" id="10_preview"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_eae6q"]
@@ -54,8 +54,8 @@ faction = 0
 [node name="ExperienceComponent" type="Node" parent="." unique_id=1603441396]
 script = ExtResource("8_experience")
 
-[node name="AttributesComponent" type="Node" parent="." unique_id=2871662041]
-script = ExtResource("9_attributes")
+[node name="InventoryComponent" type="Node" parent="."]
+script = ExtResource("9_inventory")
 
 [node name="TargetPreviewComponent" type="Node" parent="." unique_id=1872476272]
 script = ExtResource("10_preview")

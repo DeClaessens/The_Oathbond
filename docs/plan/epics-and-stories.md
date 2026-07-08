@@ -34,7 +34,7 @@ mid-implementation, stop and re-plan — never improvise (CLAUDE.md).
 > XP and levels close the loop. **Exit: a play session where you fight,
 > die, and level.** Specs: `docs/briefs/m0-01` … `m0-05`, `m0-08`.
 
-### M0.1 — Global cooldown
+### M0.1 — Global cooldown — ✅ DONE 2026-07-07
 
 **What to build.** A short global cooldown on ability activation: any
 successful cast briefly locks all slots, with movement skills (sprint,
@@ -43,14 +43,14 @@ as its own reason so UI can distinguish "GCD" from "slot cooldown". Full
 spec: `docs/briefs/m0-01-global-cooldown.md`.
 
 **Acceptance criteria**
-- [ ] Two damage skills cannot fire within the GCD window; movement skills always can
-- [ ] GCD starts only on *successful* activation (a failed cast doesn't lock you out)
-- [ ] A signal announces GCD start so cooldown UI can display it
-- [ ] Full GUT suite green
+- [x] Two damage skills cannot fire within the GCD window; movement skills always can
+- [x] GCD starts only on *successful* activation (a failed cast doesn't lock you out)
+- [x] A signal announces GCD start so cooldown UI can display it
+- [x] Full GUT suite green
 
 **Blocked by:** None — can start immediately. `ready-for-agent`
 
-### M0.2 — Target selection
+### M0.2 — Target selection — ✅ DONE 2026-07-07
 
 **What to build.** The missing ENEMY/ALLY targeting resolution: snap to the
 hostile nearest the cursor within a snap radius, fall back to the hostile
@@ -60,15 +60,15 @@ this resolver becomes the single source of truth that the highlight (M0.5)
 previews. Full spec: `docs/briefs/m0-02-target-selection.md`.
 
 **Acceptance criteria**
-- [ ] ENEMY-targeted casts hit the hostile nearest the cursor when one is in snap range
-- [ ] With the cursor over empty air, the cast falls back to the hostile nearest the caster
-- [ ] Nothing in range → cast fails `no_target`, no cost spent
-- [ ] Dead entities are never targeted; the old "unresolvable targeting" tests are rewritten
-- [ ] ADR + CONTEXT.md vocabulary updated; full GUT suite green
+- [x] ENEMY-targeted casts hit the hostile nearest the cursor when one is in snap range
+- [x] With the cursor over empty air, the cast falls back to the hostile nearest the caster
+- [x] Nothing in range → cast fails `no_target`, no cost spent
+- [x] Dead entities are never targeted; the old "unresolvable targeting" tests are rewritten
+- [x] ADR + CONTEXT.md vocabulary updated; full GUT suite green
 
 **Blocked by:** None — can start immediately. `ready-for-agent`
 
-### M0.3 — First real enemy + AI
+### M0.3 — First real enemy + AI — ✅ DONE 2026-07-07
 
 **What to build.** The first hostile that fights back: a Slime with an
 idle/chase/attack controller that detects the player through the same
@@ -77,15 +77,15 @@ effect classes, proving the skill system serves NPCs as-is. Full spec:
 `docs/briefs/m0-03-enemy-ai.md`.
 
 **Acceptance criteria**
-- [ ] A placed Slime idles until the player is in detection range, chases, and bites in melee range
-- [ ] Its bite is an authored skill asset going through AbilityComponent (cooldown, GCD and all)
-- [ ] Player can kill it (existing death/despawn flow) and it can kill the player (existing respawn)
-- [ ] No new SkillEffect subclasses were needed
-- [ ] Full GUT suite green
+- [x] A placed Slime idles until the player is in detection range, chases, and bites in melee range
+- [x] Its bite is an authored skill asset going through AbilityComponent (cooldown, GCD and all)
+- [x] Player can kill it (existing death/despawn flow) and it can kill the player (existing respawn)
+- [x] No new SkillEffect subclasses were needed
+- [x] Full GUT suite green
 
 **Blocked by:** M0.2. `ready-for-agent`
 
-### M0.4 — XP & character levels
+### M0.4 — XP & character levels — ✅ DONE 2026-07-07
 
 **What to build.** Kills award XP to the killer; levels grant permanent
 stat growth (+max health, +max mana) and a full restore. Overflow XP loops
@@ -93,15 +93,15 @@ into the next level; self-kills and unattributed deaths award nothing.
 Full spec: `docs/briefs/m0-04-xp-and-levels.md`.
 
 **Acceptance criteria**
-- [ ] Killing a Slime grants its XP reward to the player; projectile kills attribute correctly
-- [ ] Leveling applies permanent stat growth and restores both pools
-- [ ] Overflow XP carries across multiple level-ups in one kill
-- [ ] ADR-0012 amended for kill attribution; CONTEXT.md gains Experience/Level entries
-- [ ] Full GUT suite green
+- [x] Killing a Slime grants its XP reward to the player; projectile kills attribute correctly
+- [x] Leveling applies permanent stat growth and restores both pools
+- [x] Overflow XP carries across multiple level-ups in one kill
+- [x] ADR-0012 amended for kill attribution; CONTEXT.md gains Experience/Level entries
+- [x] Full GUT suite green
 
 **Blocked by:** M0.3. `ready-for-agent`
 
-### M0.5 — Target highlight
+### M0.5 — Target highlight — ✅ DONE 2026-07-07
 
 **What to build.** The entity a cast would resolve to *right now* glows —
 a per-frame preview of the same resolver the cast uses (one code path, so
@@ -111,11 +111,11 @@ player's first ENEMY-targeted skill to point with. Full spec:
 `docs/briefs/m0-05-target-highlight.md`.
 
 **Acceptance criteria**
-- [ ] Cursor near a hostile glows it; empty air shifts the glow to the fallback target; out of range → nothing glows
-- [ ] Casting always hits the currently glowing entity (snap, fallback, and out-of-range spot-checks)
-- [ ] Glowing target dying/despawning drops the glow without errors
-- [ ] No ENEMY skill equipped → preview fully off
-- [ ] Full GUT suite green
+- [x] Cursor near a hostile glows it; empty air shifts the glow to the fallback target; out of range → nothing glows
+- [x] Casting always hits the currently glowing entity (snap, fallback, and out-of-range spot-checks)
+- [x] Glowing target dying/despawning drops the glow without errors
+- [x] No ENEMY skill equipped → preview fully off
+- [x] Full GUT suite green
 
 **Blocked by:** M0.2 (best implemented after M0.3). `ready-for-agent`
 
@@ -129,9 +129,9 @@ Rename the enum label, the derived stat names, and revisit `fireball.tres`
 (likely becomes an Ember skill in name too).
 
 **Acceptance criteria**
-- [ ] Enum label renamed with order preserved; existing assets still load and deal the same damage
-- [ ] Stat keys / display strings say Ember; no FIRE remains outside git history
-- [ ] Full GUT suite green
+- [x] Enum label renamed with order preserved; existing assets still load and deal the same damage
+- [x] Stat keys / display strings say Ember; no FIRE remains outside git history
+- [x] Full GUT suite green
 
 **Blocked by:** None — can start immediately. `ready-for-agent`
 
@@ -148,7 +148,7 @@ decision in VISION.md's open questions and, if anything changes, a brief.
 
 **Blocked by:** M0.4 (want the fight–die–level loop playable first). `ready-for-human`
 
-### M0.8 — Proving-grounds level + follow camera
+### M0.8 — Proving-grounds level + follow camera — ✅ DONE 2026-07-07
 
 **What to build.** Retire the single-slab test floor: a placeholder level
 four screens wide with a normal-jump platform route and one
@@ -159,11 +159,11 @@ than one screen and proves the camera/HUD/world-space seams. Full spec:
 `docs/briefs/m0-08-level-and-camera.md`.
 
 **Acceptance criteria**
-- [ ] Camera follows the player smoothly and clamps at the level bounds — no void ever visible
-- [ ] Full width traversable; one-way platforms enterable from below; the high ledge needs Super Jump
-- [ ] Dummy + three spread-out Slimes fight as before; HUD fixed; combat text world-space (regression)
-- [ ] `Floor.tscn` deleted; level lives under `levels/`; ADR-0014 + CONTEXT.md entries recorded
-- [ ] Full GUT suite green
+- [x] Camera follows the player smoothly and clamps at the level bounds — no void ever visible
+- [x] Full width traversable; one-way platforms enterable from below; the high ledge needs Super Jump
+- [x] Dummy + three spread-out Slimes fight as before; HUD fixed; combat text world-space (regression)
+- [x] `Floor.tscn` deleted; level lives under `levels/`; ADR-0014 + CONTEXT.md entries recorded
+- [x] Full GUT suite green
 
 **Blocked by:** M0.3 (the Slime exists to place). `ready-for-agent`
 
@@ -175,7 +175,7 @@ than one screen and proves the camera/HUD/world-space seams. Full spec:
 > **Exit: quit and resume a character; the account file exists even though
 > only Bonds will use it later.**
 
-### M1.1 — Design pass: save architecture
+### M1.1 — Design pass: save architecture — ✅ DONE 2026-07-08
 
 **What to build.** An ADR + implementation brief for persistence. Must
 cover: the account/character file split; serialization format and
@@ -186,8 +186,8 @@ versioning; and the load-bearing pattern three systems already converge on
 implementer zero open questions.
 
 **Acceptance criteria**
-- [ ] ADR covering file split, format, versioning, and the validate-at-one-gate pattern
-- [ ] Brief in `docs/briefs/` (or tracker) labeled `ready-for-agent`
+- [x] ADR covering file split, format, versioning, and the validate-at-one-gate pattern (`docs/adr/0015-save-architecture.md`)
+- [x] Brief in `docs/briefs/` labeled `ready-for-agent` (`docs/briefs/m1-02-character-save-load.md`)
 
 **Blocked by:** Epic M0 complete. `ready-for-human`
 
@@ -202,7 +202,7 @@ scaffold alongside.
 - [ ] Account file exists and survives character deletion
 - [ ] Full GUT suite green
 
-**Blocked by:** M1.1. `needs-info` until the brief exists → then `ready-for-agent`
+**Blocked by:** M1.1 (done). `ready-for-agent` — brief: `docs/briefs/m1-02-character-save-load.md`
 
 ---
 

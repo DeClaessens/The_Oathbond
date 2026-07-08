@@ -26,7 +26,17 @@ brief to a coding agent live in `docs/handoff/`.
 | 08 | [Proving-grounds level + follow camera](m0-08-level-and-camera.md) | 03 (Slime exists to place) |
 
 M0 exit criterion (from `docs/VISION.md`): a play session where you fight,
-die, and level.
+die, and level. **All M0 briefs merged 2026-07-07** — see
+`docs/plan/STATUS.md`.
+
+## M1 — Persistence
+
+| # | Brief | Depends on |
+|---|-------|------------|
+| 02 | [Character save/load](m1-02-character-save-load.md) | Epic M0 merged; ADR-0015 |
+
+M1 exit criterion: quit and resume a character; the account file exists
+even though only Bonds will use it later.
 
 ## Conventions that apply to every brief
 

@@ -71,8 +71,16 @@ After merging, tick the story's boxes in `docs/plan/epics-and-stories.md`
 
 ## M1 and beyond
 
-M1+ implementation stories are `needs-info` until their epic's design pass
-produces briefs (M1.1 is the next `ready-for-human` story after M0). When
+M1.1 (save-architecture design pass) is done 2026-07-08: ADR-0015, the
+`m1-02-character-save-load` brief, and `prompts/m1-02-character-save-load.md`
+exist — M1.2 is `ready-for-agent` and has no parallel siblings, so there is
+no wave order to mind. Its review duties: ADR-0015 conformance (especially
+"never serialize StatModifiers" and the fixed load order), the CONTEXT.md
+entries the brief owes, and a real quit→relaunch resume check in the
+running game.
+
+M2+ implementation stories are `needs-info` until their epic's design pass
+produces briefs (M2.1 is the next `ready-for-human` design story). When
 those briefs land, add a prompt here per story following the existing
 pattern: preconditions header, reading list starting with
 `agent-onboarding.md`, task summary that defers to the brief, restated

@@ -191,16 +191,16 @@ implementer zero open questions.
 
 **Blocked by:** Epic M0 complete. `ready-for-human`
 
-### M1.2 — Character save/load
+### M1.2 — Character save/load — ✅ DONE 2026-07-08
 
 **What to build.** Per the M1.1 brief: persist a character (stats, level,
 XP, learned + equipped skills) and resume it; create the account file
 scaffold alongside.
 
 **Acceptance criteria**
-- [ ] Quit and resume restores level, XP, pools, and equipped skills exactly
-- [ ] Account file exists and survives character deletion
-- [ ] Full GUT suite green
+- [x] Quit and resume restores level, XP, pools, and equipped skills exactly
+- [x] Account file exists and survives character deletion
+- [x] Full GUT suite green
 
 **Blocked by:** M1.1 (done). `ready-for-agent` — brief: `docs/briefs/m1-02-character-save-load.md`
 

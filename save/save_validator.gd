@@ -7,10 +7,14 @@ extends RefCounted
 ## equipped ids not in known become empty slots, numbers are clamped to
 ## legal ranges, and each repair emits a push_warning naming the field.
 
+## Current character-document schema version. Lives here rather than on
+## SaveManager because the autoload has no class_name to reference it by.
+const VERSION := 1
+
 static func validate_character(data: Dictionary) -> Dictionary:
     var src: Dictionary = data if typeof(data) == TYPE_DICTIONARY else {}
     var out := {
-        "version": 1,
+        "version": VERSION,
         "id": String(src.get("id", "default")),
     }
     out["experience"] = _validate_experience(src.get("experience"))
@@ -25,13 +29,23 @@ static func _validate_experience(section) -> Dictionary:
         push_warning("SaveValidator: missing/invalid experience section, using defaults")
 
     var level_raw = src.get("level", 1)
-    var level: int = int(level_raw) if _is_numeric(level_raw) else 1
+    var level: int
+    if _is_numeric(level_raw):
+        level = int(level_raw)
+    else:
+        push_warning("SaveValidator: experience.level is not numeric, defaulting to 1")
+        level = 1
     if level < 1:
         push_warning("SaveValidator: experience.level %s out of range, clamped to 1" % str(level_raw))
         level = 1
 
     var xp_raw = src.get("xp", 0)
-    var xp: int = int(xp_raw) if _is_numeric(xp_raw) else 0
+    var xp: int
+    if _is_numeric(xp_raw):
+        xp = int(xp_raw)
+    else:
+        push_warning("SaveValidator: experience.xp is not numeric, defaulting to 0")
+        xp = 0
     var xp_ceiling := ExperienceComponent.xp_to_next(level) - 1
     var clamped_xp := clampi(xp, 0, xp_ceiling)
     if clamped_xp != xp:
@@ -58,7 +72,11 @@ static func _validate_skills(section) -> Dictionary:
     if typeof(section) != TYPE_DICTIONARY:
         push_warning("SaveValidator: missing/invalid skills section, using defaults")
 
-    var known_raw: Array = src.get("known") if src.get("known") is Array else []
+    var known_value = src.get("known", [])
+    if not known_value is Array:
+        push_warning("SaveValidator: skills.known is not an array, defaulting to empty")
+        known_value = []
+    var known_raw: Array = known_value
     var known: Array = []
     for id in known_raw:
         if _is_skill_id(id) and SkillCatalog.by_id(StringName(id)) != null:
@@ -66,7 +84,11 @@ static func _validate_skills(section) -> Dictionary:
         else:
             push_warning("SaveValidator: skills.known id %s does not resolve, dropped" % str(id))
 
-    var equipped_raw: Array = src.get("equipped") if src.get("equipped") is Array else []
+    var equipped_value = src.get("equipped", [])
+    if not equipped_value is Array:
+        push_warning("SaveValidator: skills.equipped is not an array, defaulting to empty")
+        equipped_value = []
+    var equipped_raw: Array = equipped_value
     var equipped: Array = []
     for i in AbilityComponent.SLOT_COUNT:
         var id = equipped_raw[i] if i < equipped_raw.size() else null

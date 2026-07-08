@@ -9,7 +9,6 @@ extends Node
 ## touch no disk, so most tests never need a scratch filesystem.
 
 const CHARACTER_ID := &"default"
-const VERSION := 1
 
 ## Plain var, not a const -- tests point this at a scratch directory.
 var save_root := "user://saves/"
@@ -25,7 +24,7 @@ func serialize_character(player: Node) -> Dictionary:
     var health := HealthComponent.of(player)
     var mana := ManaComponent.of(player)
     return {
-        "version": VERSION,
+        "version": SaveValidator.VERSION,
         "id": String(CHARACTER_ID),
         "experience": experience.save_state() if experience != null else {},
         "health": health.save_state() if health != null else {},
@@ -80,12 +79,18 @@ func load_character(player: Node) -> bool:
     file.close()
 
     var parsed = JSON.parse_string(text)
-    if typeof(parsed) != TYPE_DICTIONARY or int(parsed.get("version", 0)) > VERSION:
+    if typeof(parsed) != TYPE_DICTIONARY or int(parsed.get("version", 0)) > SaveValidator.VERSION:
         _quarantine(path)
         return false
 
-    apply_character(player, parsed)
+    apply_character(player, _migrate(parsed))
     return true
+
+## The migration seam (ADR-0015): upgrades an old document one version
+## step at a time before it reaches the Save Gate. v1 is the first schema,
+## so there are no steps yet -- a future v2 adds its step here.
+func _migrate(data: Dictionary) -> Dictionary:
+    return data
 
 func delete_character(id: StringName) -> void:
     var path := _character_path(id)
@@ -108,7 +113,7 @@ func _load_account() -> Dictionary:
         var parsed = JSON.parse_string(text)
         if typeof(parsed) == TYPE_DICTIONARY:
             return parsed
-    return {"version": VERSION, "characters": []}
+    return {"version": SaveValidator.VERSION, "characters": []}
 
 func _save_account(account: Dictionary) -> void:
     DirAccess.make_dir_recursive_absolute(save_root)
@@ -125,7 +130,7 @@ func _add_to_roster(id: StringName) -> void:
     if not characters.has(String(id)):
         characters.append(String(id))
     account["characters"] = characters
-    account["version"] = VERSION
+    account["version"] = SaveValidator.VERSION
     _save_account(account)
 
 func _remove_from_roster(id: StringName) -> void:
@@ -133,7 +138,7 @@ func _remove_from_roster(id: StringName) -> void:
     var characters: Array = account.get("characters", [])
     characters.erase(String(id))
     account["characters"] = characters
-    account["version"] = VERSION
+    account["version"] = SaveValidator.VERSION
     _save_account(account)
 
 func _quarantine(path: String) -> void:

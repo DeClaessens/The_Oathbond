@@ -174,6 +174,38 @@ func test_corrupt_character_file_is_quarantined_and_load_returns_false():
     assert_engine_error("JSON")
     assert_push_warning("quarantined")
 
+func test_next_save_after_quarantine_writes_a_valid_file():
+    var characters_dir := scratch_root.path_join("characters")
+    DirAccess.make_dir_recursive_absolute(characters_dir)
+    var path := characters_dir.path_join("default.json")
+    var file := FileAccess.open(path, FileAccess.WRITE)
+    file.store_string("{not valid json")
+    file.close()
+
+    var player := _make_player()
+    manager.load_character(player)
+    assert_engine_error("JSON")
+    assert_push_warning("quarantined")
+
+    manager.save_character(player)
+
+    assert_true(FileAccess.file_exists(path))
+    var saved_file := FileAccess.open(path, FileAccess.READ)
+    var saved = JSON.parse_string(saved_file.get_as_text())
+    saved_file.close()
+    assert_eq(typeof(saved), TYPE_DICTIONARY)
+    assert_eq(int(saved.version), SaveValidator.VERSION)
+
+    var fresh := _make_player()
+    assert_true(manager.load_character(fresh), "the post-quarantine save must load back")
+    assert_push_warning_count(1, "reloading the fresh save must trigger no validator repairs")
+
+func test_migrate_passes_a_current_version_document_through_unchanged():
+    var player := _make_player()
+    var data: Dictionary = manager.serialize_character(player)
+
+    assert_eq(manager._migrate(data), data, "v1 has no migration steps yet")
+
 func test_future_version_document_is_quarantined():
     var characters_dir := scratch_root.path_join("characters")
     DirAccess.make_dir_recursive_absolute(characters_dir)

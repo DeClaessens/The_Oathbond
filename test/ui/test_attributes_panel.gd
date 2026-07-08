@@ -69,6 +69,26 @@ func test_unspent_points_reaching_zero_disables_the_plus_buttons():
     assert_true(panel._grace_button.disabled)
     assert_true(panel._wit_button.disabled)
 
+func test_might_row_reflects_the_get_stat_total_not_just_allocation():
+    var built := _build()
+    var panel: AttributesPanel = built[0]
+    var attributes: AttributesComponent = AttributesComponent.of(built[1])
+    var stats: StatsComponent = StatsComponent.of(built[1])
+    attributes.allocate(StatKeys.MIGHT)
+
+    # Simulate future M2.4 gear: an external FLAT +might modifier the panel
+    # never allocated. The row must show allocation + gear, not the count.
+    var gear := StatModifier.new()
+    gear.stat = StatKeys.MIGHT
+    gear.op = StatModifier.Op.FLAT
+    gear.value = 4.0
+    stats.add_modifier(gear)
+    panel._refresh()
+
+    assert_eq(attributes.allocated(StatKeys.MIGHT), 1)
+    assert_eq(stats.get_stat(StatKeys.MIGHT), 5.0)
+    assert_eq(panel._might_label.text, "Might: 5", "the row must show the get_stat total, not the allocation count")
+
 func test_respec_button_resets_allocation_and_re_enables_buttons():
     var built := _build()
     var panel: AttributesPanel = built[0]

@@ -52,9 +52,9 @@ func _refresh() -> void:
         return
     var unspent := _attributes.unspent()
     _unspent_label.text = "Unspent points: %d" % unspent
-    _might_label.text = "Might: %d" % _attributes.allocated(StatKeys.MIGHT)
-    _grace_label.text = "Grace: %d" % _attributes.allocated(StatKeys.GRACE)
-    _wit_label.text = "Wit: %d" % _attributes.allocated(StatKeys.WIT)
+    _might_label.text = "Might: %d" % int(_stats.get_stat(StatKeys.MIGHT))
+    _grace_label.text = "Grace: %d" % int(_stats.get_stat(StatKeys.GRACE))
+    _wit_label.text = "Wit: %d" % int(_stats.get_stat(StatKeys.WIT))
     _might_button.disabled = unspent <= 0
     _grace_button.disabled = unspent <= 0
     _wit_button.disabled = unspent <= 0

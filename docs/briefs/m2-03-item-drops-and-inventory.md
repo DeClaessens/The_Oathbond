@@ -19,8 +19,10 @@ source: `docs/design/stats-and-gear.md` (Rarity & affixes, Architecture).
      `@export`: `id: StringName` (stable save key, like `Skill.id`),
      `display_name: String`, `icon: Texture2D`, `slot: ItemSlot` (enum,
      decision 4), `material: Material` (enum: NONE/METAL/LEATHER/WOVEN —
-     jewelry/weapon/relic use NONE), `implicit_mods: Array[ItemAffix]`
-     (fixed mods every instance carries — a Sickle's base damage),
+     jewelry/weapon/relic use NONE), `implicit_mods: Array[AffixEntry]`
+     (fixed mods every instance carries — a Sickle's base damage;
+     authored as `AffixEntry` with `min_value == max_value` — see the
+     amendment below),
      `affix_pool: AffixPool`, `attribute_requirement: Dictionary`
      (`{&"might": 10}` etc., read by M2.4's gate — authored now, unused
      until then).
@@ -32,8 +34,18 @@ source: `docs/design/stats-and-gear.md` (Rarity & affixes, Architecture).
    - **`ItemAffix`** (`items/core/item_affix.gd`, `class_name ItemAffix
      extends RefCounted`): `stat: StringName`, `op: StatModifier.Op`,
      `value: float`. The rolled instance data; on equip (M2.4) each becomes
-     a `StatModifier`. (Implicit mods reuse the same type, authored on the
-     definition.)
+     a `StatModifier`.
+
+   **Amendment (2026-07-08 — Godot `@export` constraint):** `ItemAffix`
+   must stay `RefCounted` (ADR-0003: rolled affixes are save data), but
+   Godot 4.6.2 cannot `@export` an `Array` whose element type is a bare
+   `RefCounted` ("Export type can only be built-in, a resource, a node,
+   or an enum"). So the definition's authored `implicit_mods` are
+   `Array[AffixEntry]` (a Resource — decision 3) with `min_value ==
+   max_value` denoting a fixed value; a shared helper reads `{stat, op,
+   value}` from either an `AffixEntry` (value = `min_value`) or a rolled
+   `ItemAffix` (`.value`), so M2.4 iterates implicit + rolled mods
+   uniformly. `ItemInstance.rolled_affixes` stays `Array[ItemAffix]`.
 2. **Rarity** (`Rarity` enum on a shared `items/core/item_types.gd`, or on
    `ItemInstance` — one home, cited everywhere): `COMMON=0, QUALITY=1,
    MASTERWORK=2, HEIRLOOM=3`. Affix counts: Common 0, Quality 1–2,

@@ -23,6 +23,7 @@ func serialize_character(player: Node) -> Dictionary:
     var experience := ExperienceComponent.of(player)
     var health := HealthComponent.of(player)
     var mana := ManaComponent.of(player)
+    var inventory := InventoryComponent.of(player)
     return {
         "version": SaveValidator.VERSION,
         "id": String(CHARACTER_ID),
@@ -30,6 +31,7 @@ func serialize_character(player: Node) -> Dictionary:
         "health": health.save_state() if health != null else {},
         "mana": mana.save_state() if mana != null else {},
         "skills": player.save_skill_state() if player.has_method("save_skill_state") else {},
+        "inventory": inventory.save_state() if inventory != null else [],
     }
 
 ## Load order is fixed -- experience, then health, then mana, then skills
@@ -52,6 +54,10 @@ func apply_character(player: Node, data: Dictionary) -> void:
 
     if player.has_method("load_skill_state"):
         player.load_skill_state(sanitized.skills)
+
+    var inventory := InventoryComponent.of(player)
+    if inventory != null:
+        inventory.load_state(sanitized.inventory)
 
 func save_character(player: Node) -> void:
     var data := serialize_character(player)

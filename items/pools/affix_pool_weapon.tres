@@ -1,0 +1,78 @@
+[gd_resource type="Resource" script_class="AffixPool" format=3]
+
+[ext_resource type="Script" path="res://items/core/affix_pool.gd" id="1_pool"]
+[ext_resource type="Script" path="res://items/core/affix_entry.gd" id="2_entry"]
+
+[sub_resource type="Resource" id="w_flat_physical"]
+script = ExtResource("2_entry")
+stat = &"dmg_physical"
+op = 0
+min_value = 2.0
+max_value = 8.0
+
+[sub_resource type="Resource" id="w_flat_ember"]
+script = ExtResource("2_entry")
+stat = &"dmg_ember"
+op = 0
+min_value = 2.0
+max_value = 8.0
+
+[sub_resource type="Resource" id="w_flat_radiance"]
+script = ExtResource("2_entry")
+stat = &"dmg_radiance"
+op = 0
+min_value = 2.0
+max_value = 8.0
+
+[sub_resource type="Resource" id="w_flat_rot"]
+script = ExtResource("2_entry")
+stat = &"dmg_rot"
+op = 0
+min_value = 2.0
+max_value = 8.0
+
+[sub_resource type="Resource" id="w_pct_physical"]
+script = ExtResource("2_entry")
+stat = &"dmg_physical"
+op = 1
+min_value = 0.1
+max_value = 0.35
+
+[sub_resource type="Resource" id="w_pct_ember"]
+script = ExtResource("2_entry")
+stat = &"dmg_ember"
+op = 1
+min_value = 0.1
+max_value = 0.35
+
+[sub_resource type="Resource" id="w_pct_radiance"]
+script = ExtResource("2_entry")
+stat = &"dmg_radiance"
+op = 1
+min_value = 0.1
+max_value = 0.35
+
+[sub_resource type="Resource" id="w_pct_rot"]
+script = ExtResource("2_entry")
+stat = &"dmg_rot"
+op = 1
+min_value = 0.1
+max_value = 0.35
+
+[sub_resource type="Resource" id="w_crit_chance"]
+script = ExtResource("2_entry")
+stat = &"crit_chance"
+op = 0
+min_value = 0.02
+max_value = 0.08
+
+[sub_resource type="Resource" id="w_crit_multi"]
+script = ExtResource("2_entry")
+stat = &"crit_multi"
+op = 0
+min_value = 0.1
+max_value = 0.4
+
+[resource]
+script = ExtResource("1_pool")
+entries = Array[ExtResource("2_entry")]([SubResource("w_flat_physical"), SubResource("w_flat_ember"), SubResource("w_flat_radiance"), SubResource("w_flat_rot"), SubResource("w_pct_physical"), SubResource("w_pct_ember"), SubResource("w_pct_radiance"), SubResource("w_pct_rot"), SubResource("w_crit_chance"), SubResource("w_crit_multi")])

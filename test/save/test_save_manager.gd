@@ -200,6 +200,52 @@ func test_next_save_after_quarantine_writes_a_valid_file():
     assert_true(manager.load_character(fresh), "the post-quarantine save must load back")
     assert_push_warning_count(1, "reloading the fresh save must trigger no validator repairs")
 
+func _roll_and_hold(player: Player, def_id: StringName) -> ItemInstance:
+    var inst := ItemRoller.roll(ItemCatalog.by_id(def_id))
+    InventoryComponent.of(player).add(inst)
+    return inst
+
+func test_inventory_round_trips_through_disk():
+    var player := _make_player()
+    var held := _roll_and_hold(player, &"rusted_sickle")
+    _roll_and_hold(player, &"worn_hide")
+
+    manager.save_character(player)
+
+    var fresh := _make_player()
+    assert_true(manager.load_character(fresh))
+    var fresh_inv := InventoryComponent.of(fresh)
+    assert_eq(fresh_inv.size(), 2, "both held items survive save/load")
+    var first: ItemInstance = fresh_inv.items()[0]
+    assert_eq(first.definition_id, held.definition_id)
+    assert_eq(first.rarity, held.rarity)
+    assert_eq(first.rolled_affixes.size(), held.rolled_affixes.size())
+    for i in held.rolled_affixes.size():
+        assert_eq(first.rolled_affixes[i].stat, held.rolled_affixes[i].stat)
+        assert_almost_eq(first.rolled_affixes[i].value, held.rolled_affixes[i].value, 0.0001)
+
+func test_inventory_survives_serialize_apply_on_a_fresh_graph():
+    var played := _make_player()
+    _roll_and_hold(played, &"rusted_sickle")
+
+    var data: Dictionary = manager.serialize_character(played)
+    assert_eq(typeof(data.inventory), TYPE_ARRAY)
+
+    var fresh := _make_player()
+    manager.apply_character(fresh, data)
+    assert_eq(InventoryComponent.of(fresh).size(), 1)
+
+func test_unknown_inventory_def_id_loads_sanitized_without_crash():
+    var player := _make_player()
+    manager.apply_character(player, {
+        "inventory": [
+            {"def_id": "rusted_sickle", "rarity": 1, "affixes": [{"stat": "dmg_ember", "op": 0, "value": 5.0}]},
+            {"def_id": "not_a_real_item", "rarity": 1, "affixes": []},
+        ],
+    })
+    assert_eq(InventoryComponent.of(player).size(), 1, "the unknown def_id entry is dropped at the gate")
+    assert_push_warning("does not resolve")
+
 func test_migrate_passes_a_current_version_document_through_unchanged():
     var player := _make_player()
     var data: Dictionary = manager.serialize_character(player)

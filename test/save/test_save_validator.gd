@@ -112,3 +112,82 @@ func test_non_dictionary_document_defaults_everything():
     assert_eq(out.health, {"current": 0.0})
     assert_eq(out.mana, {"current": 0.0})
     assert_eq(out.skills, {"known": [], "equipped": [null, null, null, null]})
+    assert_eq(out.inventory, [], "a document with no inventory yields an empty section")
+
+# --- inventory section (M2.3) ---
+
+func _inventory_entry(def_id := "rusted_sickle", rarity = 1, affixes = null) -> Dictionary:
+    return {
+        "def_id": def_id,
+        "rarity": rarity,
+        "affixes": affixes if affixes != null else [{"stat": "dmg_ember", "op": 0, "value": 5.0}],
+    }
+
+func test_valid_inventory_passes_through():
+    var data := _valid_document()
+    data["inventory"] = [_inventory_entry()]
+    var out := SaveValidator.validate_character(data)
+    assert_eq(out.inventory.size(), 1)
+    assert_eq(out.inventory[0].def_id, "rusted_sickle")
+    assert_eq(out.inventory[0].rarity, 1)
+    assert_eq(out.inventory[0].affixes[0], {"stat": "dmg_ember", "op": 0, "value": 5.0})
+
+func test_missing_inventory_defaults_to_empty_without_warning():
+    var out := SaveValidator.validate_character(_valid_document())
+    assert_eq(out.inventory, [])
+    assert_push_warning_count(0)
+
+func test_non_array_inventory_defaults_to_empty_with_warning():
+    var data := _valid_document()
+    data["inventory"] = "not an array"
+    var out := SaveValidator.validate_character(data)
+    assert_eq(out.inventory, [])
+    assert_push_warning("inventory is not an array")
+
+func test_unknown_def_id_entry_is_dropped():
+    var data := _valid_document()
+    data["inventory"] = [_inventory_entry("not_a_real_item")]
+    var out := SaveValidator.validate_character(data)
+    assert_eq(out.inventory, [])
+    assert_push_warning("does not resolve")
+
+func test_out_of_range_rarity_is_clamped():
+    var data := _valid_document()
+    data["inventory"] = [_inventory_entry("rusted_sickle", 99)]
+    var out := SaveValidator.validate_character(data)
+    assert_eq(out.inventory[0].rarity, int(ItemTypes.Rarity.HEIRLOOM))
+    assert_push_warning("out of range")
+
+func test_non_numeric_rarity_defaults_to_common():
+    var data := _valid_document()
+    data["inventory"] = [_inventory_entry("rusted_sickle", "shiny")]
+    var out := SaveValidator.validate_character(data)
+    assert_eq(out.inventory[0].rarity, int(ItemTypes.Rarity.COMMON))
+    assert_push_warning("not numeric")
+
+func test_malformed_affix_is_dropped_but_the_entry_survives():
+    var data := _valid_document()
+    data["inventory"] = [_inventory_entry("rusted_sickle", 2, [
+        {"stat": "dmg_ember", "op": 0, "value": 5.0},
+        {"stat": "", "op": 0, "value": 1.0},
+        {"op": 0, "value": 1.0},
+        "not a dict",
+    ])]
+    var out := SaveValidator.validate_character(data)
+    assert_eq(out.inventory.size(), 1)
+    assert_eq(out.inventory[0].affixes.size(), 1, "only the well-formed affix survives")
+    assert_push_warning("malformed affix dropped")
+
+func test_out_of_range_op_affix_is_dropped():
+    var data := _valid_document()
+    data["inventory"] = [_inventory_entry("rusted_sickle", 1, [{"stat": "dmg_ember", "op": 9, "value": 5.0}])]
+    var out := SaveValidator.validate_character(data)
+    assert_eq(out.inventory[0].affixes.size(), 0)
+    assert_push_warning("op 9 out of range")
+
+func test_non_dictionary_inventory_entry_is_dropped():
+    var data := _valid_document()
+    data["inventory"] = ["not a dict", _inventory_entry()]
+    var out := SaveValidator.validate_character(data)
+    assert_eq(out.inventory.size(), 1)
+    assert_push_warning("inventory entry is not a dictionary")

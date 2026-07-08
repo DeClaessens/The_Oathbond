@@ -166,6 +166,28 @@ _Avoid_: Sanitizer, schema check (this is specifically the load-bearing single g
 `SkillCatalog`, the authored `res://skills/skill_catalog.tres` resource listing every Skill asset under `skills/library/` (enemy Skills included), and the only legal way to resolve a persisted Skill id back into a `Skill` (`SkillCatalog.by_id`). Exists because Skills serialize as `Skill.id`, never as resource paths — paths break on refactors. Duplicate or empty ids in the catalog are authoring errors, surfaced with `push_error`.
 _Avoid_: Skill registry, skill database
 
+### Items & gear
+
+**Item Definition**:
+The authored base item type — a "Rusted Sickle" — carried by an `ItemDefinition` Resource (`items/core/item_definition.gd`): its stable `id`, display name, icon, equip `slot`, `material` tag, fixed `implicit_mods`, the `affix_pool` it rolls from, and the `attribute_requirement` M2.4's equip gate reads. The definition half of the definition/instance split (ADR-0003, third appearance after the skill/save split): shared, immutable, never mutated by a roll. Listed in the Item Catalog and resolved by id, exactly like a Skill.
+_Avoid_: Item type as a class per item, base item as save data
+
+**Item Instance**:
+A rolled drop — an `ItemInstance` (`items/core/item_instance.gd`) holding a `definition_id`, a `Rarity`, and its `rolled_affixes`. Runtime/save data only: `RefCounted`, **never** a Resource and never a `.tres` (ADR-0003), persisted as a plain dict through the single Save Gate (ADR-0015). Resolves its definition through the Item Catalog; the instance is where an item's own rolled numbers live, distinct from the definition's authored ranges.
+_Avoid_: Dropped item as a mutated Resource, storing a roll as a `.tres`
+
+**Affix**:
+One rolled stat modifier on an Item Instance — an `ItemAffix` (`items/core/item_affix.gd`, `RefCounted`): a `stat`, a `StatModifier.Op`, and a rolled `value`. On equip (M2.4) each becomes a `StatModifier` sourced to the instance. Authored ranges live in an `AffixEntry` (a Resource) inside an `AffixPool`; an implicit mod is authored as an `AffixEntry` with `min_value == max_value`. `ItemAffix.triple()` reads a `{stat, op, value}` triple from either source so implicit and rolled mods iterate uniformly.
+_Avoid_: Prefix/suffix (no such split at M2), a separate `dmg_flat_<type>` key (flat added damage is just a FLAT-op affix on `dmg_<type>`)
+
+**Rarity**:
+An Item Instance's tier — `COMMON` (0 affixes), `QUALITY` (1–2), `MASTERWORK` (3–5), `HEIRLOOM` (authored). The `ItemRoller` picks rarity by weight (Common 60 / Quality 30 / Masterwork 10) and never rolls a Heirloom — Heirlooms are hand-made, the enum value exists but the roller never produces one. Append-only, order frozen; a saved instance stores the int.
+_Avoid_: Quality as a numeric score, rolling Heirlooms
+
+**Item Catalog**:
+`ItemCatalog`, the authored `res://items/item_catalog.tres` resource listing every `ItemDefinition` under `items/library/`, and the only legal way to resolve a persisted `definition_id` back into a definition (`ItemCatalog.by_id`). The exact twin of the Skill Catalog — lazy static lookup, `push_error` on duplicate or empty ids, one completeness test against the definitions folder. Exists for the same reason: instances serialize by id, never by resource path.
+_Avoid_: Item registry, item database
+
 ### World
 
 **Level**:

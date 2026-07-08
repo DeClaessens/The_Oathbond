@@ -79,9 +79,41 @@ no wave order to mind. Its review duties: ADR-0015 conformance (especially
 entries the brief owes, and a real quit→relaunch resume check in the
 running game.
 
-M2+ implementation stories are `needs-info` until their epic's design pass
-produces briefs (M2.1 is the next `ready-for-human` design story). When
-those briefs land, add a prompt here per story following the existing
+M2.1 (Loot & inventory design pass) is done 2026-07-08: ADR-0016
+(derived stats), ADR-0017 (crit), and briefs + prompts for M2.2–M2.5 exist.
+All four are `ready-for-agent`.
+
+## M2 dispatch order
+
+```
+wave 1:  M2.2 (attributes)   M2.3 (drops & inventory)   M2.5 (crit & stats)
+                    │                    │
+wave 2:             └────────┬───────────┘
+                             │
+                        M2.4 (equip gate)
+```
+
+- **Wave 1** — M2.2, M2.3, M2.5 are independent after M2.1 and touch mostly
+  disjoint areas. Coordination points to watch when merging: all three add a
+  section to the character save document and its validator (rebase whichever
+  merges later); M2.2 and M2.4 both edit the save **load order**; M2.5's
+  flat-damage test and M2.3's weapon affix pool reference the same
+  `dmg_<type>` FLAT affix (M2.5 decision 4 says who adds it based on merge
+  order).
+- **Wave 2** — M2.4 needs M2.2 (attributes to require against) and M2.3
+  (items to equip) both merged.
+
+Each prompt's preconditions header repeats its dependency and tells the agent
+to verify it and stop if unmet. Review duties per story: ADR conformance
+(ADR-0016's dependent-emission for M2.2/M2.4; ADR-0017's single crit seam for
+M2.5), the CONTEXT.md entries each brief owes, the save-document/validator
+extension staying within the one-gate pattern, and a real in-game check
+(allocate a point and watch a derived stat move; kill → drop → pick up →
+equip → stat changes; land a visible crit).
+
+M3+ implementation stories are `needs-info` until their epic's design pass
+produces briefs (M3.1 is the next `ready-for-human` design story after M2).
+When those briefs land, add a prompt here per story following the existing
 pattern: preconditions header, reading list starting with
 `agent-onboarding.md`, task summary that defers to the brief, restated
 load-bearing invariants, story-specific definition of done.

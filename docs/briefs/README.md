@@ -36,7 +36,21 @@ die, and level. **All M0 briefs merged 2026-07-07** — see
 | 02 | [Character save/load](m1-02-character-save-load.md) | Epic M0 merged; ADR-0015 |
 
 M1 exit criterion: quit and resume a character; the account file exists
-even though only Bonds will use it later.
+even though only Bonds will use it later. **M1.2 merged 2026-07-08.**
+
+## M2 — Loot & inventory
+
+| # | Brief | Depends on |
+|---|-------|------------|
+| 02 | [Attributes (Might/Grace/Wit)](m2-02-attributes.md) | M2.1 (ADR-0016) |
+| 03 | [Item drops & inventory](m2-03-item-drops-and-inventory.md) | M2.1 |
+| 04 | [Equip gate & slots](m2-04-equip-gate-and-slots.md) | 02 + 03 |
+| 05 | [Crit & the new stat roster](m2-05-crit-and-stat-roster.md) | M2.1 (ADR-0017) |
+
+M2 exit criterion: killing things drops gear that changes your stats.
+Contracts: ADR-0016 (derived stats), ADR-0017 (crit). M2.2/M2.3/M2.5
+parallelize after M2.1; M2.4 needs 02 + 03. All extend the M1 save gate
+(ADR-0015) with new document sections.
 
 ## Conventions that apply to every brief
 

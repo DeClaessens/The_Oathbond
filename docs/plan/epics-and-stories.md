@@ -213,7 +213,7 @@ scaffold alongside.
 > `docs/design/stats-and-gear.md`. **Exit: killing things drops gear that
 > changes your stats.**
 
-### M2.1 — Design pass: M2 ADRs + briefs
+### M2.1 — Design pass: M2 ADRs + briefs — ✅ DONE 2026-07-08
 
 **What to build.** Turn `docs/design/stats-and-gear.md` into contracts:
 an ADR for the derived-stats mechanism (attributes feeding max health /
@@ -223,13 +223,13 @@ pipeline, final attribute names (Might/Grace/Wit are working names), and
 briefs for stories M2.2–M2.5.
 
 **Acceptance criteria**
-- [ ] Derived-stats ADR (mechanism + one-way table) and crit-placement ADR written
-- [ ] Attribute names finalized
-- [ ] Briefs for M2.2–M2.5 leave zero open questions
+- [x] Derived-stats ADR (`docs/adr/0016`) and crit-placement ADR (`docs/adr/0017`) written
+- [x] Attribute names finalized — Might / Grace / Wit (locked 2026-07-08)
+- [x] Briefs for M2.2–M2.5 leave zero open questions (`docs/briefs/m2-02`…`m2-05`)
 
 **Blocked by:** Epic M1 complete. `ready-for-human`
 
-### M2.2 — Attributes
+### M2.2 — Attributes — `ready-for-agent` · brief `docs/briefs/m2-02-attributes.md`
 
 **What to build.** Might/Grace/Wit as stats: points per level allocated
 freely, class starting spreads, modest derived scaling per the design doc,
@@ -241,9 +241,9 @@ derived stat move.
 - [ ] Respec returns points for its cost
 - [ ] Full GUT suite green
 
-**Blocked by:** M2.1. `needs-info` → `ready-for-agent`
+**Blocked by:** M2.1 (done). `ready-for-agent`
 
-### M2.3 — Item drops & inventory
+### M2.3 — Item drops & inventory — `ready-for-agent` · brief `docs/briefs/m2-03-item-drops-and-inventory.md`
 
 **What to build.** Item *definitions* as authored Resources; *dropped
 items* as rolled instance data (definition id + rarity + rolled affixes)
@@ -256,9 +256,9 @@ lands in an inventory UI.
 - [ ] Inventory UI shows the rolled values, not the definition's
 - [ ] Full GUT suite green
 
-**Blocked by:** M2.1. `needs-info` → `ready-for-agent`
+**Blocked by:** M2.1 (done). `ready-for-agent`
 
-### M2.4 — Equip gate & slots
+### M2.4 — Equip gate & slots — `ready-for-agent` · brief `docs/briefs/m2-04-equip-gate-and-slots.md`
 
 **What to build.** The 11-slot roster with material tags and the shared
 `validate()` equip gate (slot match, attribute requirements — later, oath
@@ -271,9 +271,9 @@ exactly once, called by UI and save-load alike.
 - [ ] Items you lack the attributes for refuse to equip, in UI *and* on load
 - [ ] Full GUT suite green
 
-**Blocked by:** M2.2, M2.3. `needs-info` → `ready-for-agent`
+**Blocked by:** M2.2, M2.3. `ready-for-agent` (brief: `docs/briefs/m2-04-equip-gate-and-slots.md`)
 
-### M2.5 — Crit & the new stat roster
+### M2.5 — Crit & the new stat roster — `ready-for-agent` · brief `docs/briefs/m2-05-crit-and-stat-roster.md`
 
 **What to build.** `crit_chance`/`crit_multi` rolled into the damage
 pipeline; the new gear stats live end-to-end (flat added damage per type,
@@ -285,7 +285,7 @@ text visibly distinguishes crits.
 - [ ] Cooldown/mana-cost reduction measurably change cast cadence and costs
 - [ ] Full GUT suite green
 
-**Blocked by:** M2.1. `needs-info` → `ready-for-agent`
+**Blocked by:** M2.1 (done). `ready-for-agent`
 
 ---
 

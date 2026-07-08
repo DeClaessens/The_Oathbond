@@ -170,7 +170,10 @@ Resource.
 
 ## Open questions (deferred)
 
-- Attribute names final? (Might/Grace/Wit are working names.)
+- ~~Attribute names final?~~ **Resolved 2026-07-08 (M2.1): Might / Grace / Wit
+  locked** — stat keys `might`/`grace`/`wit`. See `docs/briefs/m2-02-attributes.md`.
+- The M2 mechanism forks graduated into ADRs at M2.1: derived stats →
+  ADR-0016 (one-way table), crit placement → ADR-0017 (outgoing packet).
 - All numbers (points per level, requirement curves, affix ranges, drop
   weights) — M2 tuning.
 - Whether Heirlooms can carry fragment affixes (the VISION open question —

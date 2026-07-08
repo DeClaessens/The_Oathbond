@@ -12,8 +12,10 @@ Last updated: 2026-07-08.
   to `main` 2026-07-08 after two-axis review; suite green (218/218). The M1
   exit criterion — quit and resume a character, account file exists — awaits
   Thomas's in-game quit→relaunch check.
-- **Next up: M2.1 — design pass for Loot & inventory** (`ready-for-human` /
-  planning tier), gated on the M1 exit check above.
+- **M2 — Loot & inventory design pass (M2.1) done 2026-07-08.** ADR-0016
+  (derived stats), ADR-0017 (crit), attribute names locked (Might/Grace/Wit),
+  and four `ready-for-agent` briefs (M2.2–M2.5). Ready to dispatch to coding
+  agents — M2.2/M2.3/M2.5 in parallel, M2.4 after 02+03.
 - M0 (Combat completeness) merged 2026-07-07; its playable exit criterion
   lives in the proving-grounds level (`levels/`) with the Slime.
 
@@ -31,8 +33,12 @@ Last updated: 2026-07-08.
 | M0.8 | Proving-grounds level + camera | ✅ merged 2026-07-07 (`da6f2dd`) |
 | M1.1 | Design pass: save architecture | ✅ done 2026-07-08 — ADR-0015 + `docs/briefs/m1-02-character-save-load.md` |
 | M1.2 | Character save/load | ✅ merged 2026-07-08 (`45f90eb`) — implemented by a coding agent, reviewed (standards + spec axes), review findings fixed |
-| M2.1 | Design pass: M2 ADRs + briefs | ⚪ next — `ready-for-human`, gated on the M1 in-game exit check |
-| M2.2+ | Loot, splicing, … | ⚪ not started — see `epics-and-stories.md` |
+| M2.1 | Design pass: M2 ADRs + briefs | ✅ done 2026-07-08 — ADR-0016, ADR-0017, briefs m2-02…m2-05, attribute names locked |
+| M2.2 | Attributes (Might/Grace/Wit) | 🔵 `ready-for-agent` — dispatchable now (parallel wave 1) |
+| M2.3 | Item drops & inventory | 🔵 `ready-for-agent` — dispatchable now (parallel wave 1) |
+| M2.4 | Equip gate & slots | ⚪ `ready-for-agent` — blocked until M2.2 + M2.3 merge |
+| M2.5 | Crit & new stat roster | 🔵 `ready-for-agent` — dispatchable now (parallel wave 1) |
+| M3+ | Skill splicing, journey, … | ⚪ not started — see `epics-and-stories.md` |
 
 ## Standing pointers
 

@@ -2,10 +2,12 @@ extends Node2D
 
 @onready var player: Player = $Player
 @onready var hud: SkillBar = $SkillBarHUD
+@onready var attributes_panel: AttributesPanel = $AttributesPanel
 @onready var level: Level = $ProvingGrounds
 
 func _ready() -> void:
     hud.bind(player.abilities)
+    attributes_panel.bind(AttributesComponent.of(player), StatsComponent.of(player))
 
     var camera: Camera2D = player.get_node(^"Camera2D")
     camera.limit_left = int(level.bounds.position.x)

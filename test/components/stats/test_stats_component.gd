@@ -144,6 +144,98 @@ func test_mitigate_incoming_clamps_resistance_at_0_9():
     }
     assert_almost_eq(stats.mitigate_incoming(100.0, StatKeys.DamageType.PHYSICAL), 10.0, 0.0001)
 
+func test_derived_stat_includes_source_attribute_contribution():
+    stats.base_stats = {StatKeys.MIGHT: 10.0}
+    assert_eq(stats.get_stat(StatKeys.MAX_HEALTH), 20.0)
+
+func test_derived_stat_stacks_with_its_own_base():
+    stats.base_stats = {StatKeys.MIGHT: 10.0, StatKeys.MAX_HEALTH: 100.0}
+    assert_eq(stats.get_stat(StatKeys.MAX_HEALTH), 120.0)
+
+func test_wit_derives_max_mana_and_grace_derives_crit_multi():
+    stats.base_stats = {StatKeys.WIT: 20.0, StatKeys.GRACE: 40.0}
+    assert_eq(stats.get_stat(StatKeys.MAX_MANA), 20.0)
+    assert_almost_eq(stats.get_stat(StatKeys.CRIT_MULTI), 0.2, 0.0001)
+
+func test_flat_pct_gear_on_derived_stat_amplifies_the_attribute_contribution():
+    stats.base_stats = {StatKeys.MIGHT: 10.0}
+    var add := StatModifier.new()
+    add.stat = StatKeys.MAX_HEALTH
+    add.op = StatModifier.Op.ADD_PCT
+    add.value = 0.5
+    stats.add_modifier(add)
+    assert_eq(stats.get_stat(StatKeys.MAX_HEALTH), 30.0, "FLAT-tier placement means +% max health must also scale Might-derived health")
+
+func test_adding_a_source_attribute_modifier_emits_dependent_stat_changed():
+    stats.base_stats = {StatKeys.MIGHT: 10.0}
+    watch_signals(stats)
+    var mod := StatModifier.new()
+    mod.stat = StatKeys.MIGHT
+    mod.op = StatModifier.Op.FLAT
+    mod.value = 5.0
+    stats.add_modifier(mod)
+
+    assert_signal_emitted_with_parameters(stats, "stat_changed", [StatKeys.MIGHT, 15.0], 0)
+    assert_signal_emitted_with_parameters(stats, "stat_changed", [StatKeys.MAX_HEALTH, 30.0], 1)
+
+func test_removing_a_source_attribute_modifier_tracks_the_derived_stat_back_down():
+    stats.base_stats = {StatKeys.MIGHT: 10.0}
+    var mod := StatModifier.new()
+    mod.stat = StatKeys.MIGHT
+    mod.op = StatModifier.Op.FLAT
+    mod.value = 5.0
+    stats.add_modifier(mod)
+    assert_eq(stats.get_stat(StatKeys.MAX_HEALTH), 30.0)
+
+    watch_signals(stats)
+    stats.remove_modifier(mod)
+
+    assert_signal_emitted_with_parameters(stats, "stat_changed", [StatKeys.MAX_HEALTH, 20.0])
+    assert_eq(stats.get_stat(StatKeys.MAX_HEALTH), 20.0)
+
+func test_refresh_reapply_of_a_source_attribute_emits_the_dependent_stat():
+    stats.base_stats = {StatKeys.MIGHT: 10.0}
+    var first := StatModifier.new()
+    first.stat = StatKeys.MIGHT
+    first.op = StatModifier.Op.FLAT
+    first.value = 5.0
+    first.key = &"attribute_might"
+    stats.add_modifier(first)
+
+    watch_signals(stats)
+    var refreshed := StatModifier.new()
+    refreshed.stat = StatKeys.MIGHT
+    refreshed.op = StatModifier.Op.FLAT
+    refreshed.value = 8.0
+    refreshed.key = &"attribute_might"
+    stats.add_modifier(refreshed)
+
+    assert_signal_emitted_with_parameters(stats, "stat_changed", [StatKeys.MAX_HEALTH, 36.0])
+
+func test_expiring_a_timed_source_attribute_modifier_emits_the_dependent_stat():
+    stats.base_stats = {StatKeys.MIGHT: 10.0}
+    var mod := StatModifier.new()
+    mod.stat = StatKeys.MIGHT
+    mod.op = StatModifier.Op.FLAT
+    mod.value = 5.0
+    mod.duration = 1.0
+    stats.add_modifier(mod)
+
+    watch_signals(stats)
+    stats._process(1.5)
+
+    assert_signal_emitted_with_parameters(stats, "stat_changed", [StatKeys.MAX_HEALTH, 20.0])
+
+func test_stat_with_no_derivation_only_emits_once():
+    stats.base_stats = {StatKeys.MOVE_SPEED: 100.0}
+    var mod := StatModifier.new()
+    mod.stat = StatKeys.MOVE_SPEED
+    mod.op = StatModifier.Op.FLAT
+    mod.value = 10.0
+    watch_signals(stats)
+    stats.add_modifier(mod)
+    assert_signal_emit_count(stats, "stat_changed", 1)
+
 func _keyed_mod(value: float, duration: float, op: StatModifier.Op = StatModifier.Op.ADD_PCT) -> StatModifier:
     var mod := StatModifier.new()
     mod.stat = StatKeys.MOVE_SPEED

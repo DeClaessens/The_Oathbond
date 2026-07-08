@@ -21,26 +21,33 @@ func _notification(what: int) -> void:
 
 func serialize_character(player: Node) -> Dictionary:
     var experience := ExperienceComponent.of(player)
+    var attributes := AttributesComponent.of(player)
     var health := HealthComponent.of(player)
     var mana := ManaComponent.of(player)
     return {
         "version": SaveValidator.VERSION,
         "id": String(CHARACTER_ID),
         "experience": experience.save_state() if experience != null else {},
+        "attributes": attributes.save_state() if attributes != null else {},
         "health": health.save_state() if health != null else {},
         "mana": mana.save_state() if mana != null else {},
         "skills": player.save_skill_state() if player.has_method("save_skill_state") else {},
     }
 
-## Load order is fixed -- experience, then health, then mana, then skills
-## (ADR-0015): growth modifiers raise max pools via stat_changed before the
-## pools clamp their persisted currents.
+## Load order is fixed -- experience, then attributes, then health, then
+## mana, then skills (ADR-0015 / ADR-0016): growth modifiers and allocation
+## must raise max pools via stat_changed before the pools clamp their
+## persisted currents.
 func apply_character(player: Node, data: Dictionary) -> void:
     var sanitized := SaveValidator.validate_character(data)
 
     var experience := ExperienceComponent.of(player)
     if experience != null:
         experience.load_state(sanitized.experience)
+
+    var attributes := AttributesComponent.of(player)
+    if attributes != null:
+        attributes.load_state(sanitized.attributes)
 
     var health := HealthComponent.of(player)
     if health != null:

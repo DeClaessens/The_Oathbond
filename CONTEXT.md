@@ -50,6 +50,14 @@ _Avoid_: Hotbar, action bar, ability bar
 A named numeric attribute of a character (e.g. move speed, max health) produced by composing a base value with any active Modifiers. Recomputed fresh from base + active Modifiers every time it's read — it has no memory of its own. Contrast with a Resource Pool.
 _Avoid_: Attribute, property
 
+**Attribute**:
+One of the three player-grown Stats — Might, Grace, Wit — allocated from Attribute Points rather than authored on `base_stats`. Ordinary Stats otherwise: string-keyed (`StatKeys.MIGHT`/`GRACE`/`WIT`, not `Stat` enum entries), composed the same way, and a future gear system can add to them directly (M2.4). Their entire purpose is feeding Derived Stats — see ADR-0016.
+_Avoid_: Ability score, primary stat
+
+**Derived Stat**:
+A Stat whose value partly comes from an Attribute through the fixed one-way table in `StatsComponent.DERIVATIONS`, resolved inside `get_stat` at the FLAT tier: Max Health from Might (×2.0), Max Mana from Wit (×1.0), and `crit_multi` from Grace (×0.005). The table is one-way by construction — a Derived Stat is never itself a source — so cycles can't be introduced. See ADR-0016.
+_Avoid_: Secondary stat
+
 **Modifier**:
 A Flat, Additive%, or Multiplicative% adjustment to one Stat, either permanent or timed, applied via a Skill Effect.
 _Avoid_: Bonus
@@ -147,6 +155,10 @@ _Avoid_: XP as a Stat (it isn't modified by buffs — it's a running count, not 
 **Character Level**:
 A character's permanent progression tier, starting at 1 and rising when accumulated Experience crosses `xp_to_next(level)`. Each level-up grants permanent flat growth (`+Max Health`, `+Max Mana`) applied as stacking Modifiers — never by mutating `base_stats` — plus a full restore of Health and Mana. Distinct from the world **Level** above — same word, unrelated concept; say "character level" or "the level scene" when ambiguous. Persisted as `level`/`xp` only (M1); the growth Modifiers themselves are never serialized, they're replayed from `level` on load (see Save Gate).
 _Avoid_: Player Level (levels apply to any character, not just the player), XP Level
+
+**Attribute Point**:
+The per-level allocation currency spent into an Attribute, owned by `AttributesComponent`. `STARTING_POINTS` are available at Character Level 1 (an immediate build decision); each level-up grants `POINTS_PER_LEVEL` more. Unspent until spent; a Respec (free and unlimited at M2 — no economy exists yet) returns every allocated point to unspent and drops the Attribute back to 0.
+_Avoid_: Skill point (that name is reserved for a future Skill Splicing currency, M3+), talent point
 
 ### Persistence
 

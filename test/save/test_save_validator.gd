@@ -5,6 +5,7 @@ func _valid_document() -> Dictionary:
         "version": 1,
         "id": "default",
         "experience": {"level": 3, "xp": 12},
+        "attributes": {"allocated": {"might": 2, "grace": 1, "wit": 0}, "unspent": 4},
         "health": {"current": 57.0},
         "mana": {"current": 20.0},
         "skills": {
@@ -16,6 +17,7 @@ func _valid_document() -> Dictionary:
 func test_valid_document_passes_through_unchanged():
     var out := SaveValidator.validate_character(_valid_document())
     assert_eq(out.experience, {"level": 3, "xp": 12})
+    assert_eq(out.attributes, {"allocated": {"might": 2, "grace": 1, "wit": 0}, "unspent": 4})
     assert_eq(out.health, {"current": 57.0})
     assert_eq(out.mana, {"current": 20.0})
     assert_eq(out.skills.known, ["sprint", "super_jump", "spark", "smite"])
@@ -24,10 +26,59 @@ func test_valid_document_passes_through_unchanged():
 func test_missing_sections_default_and_warn():
     var out := SaveValidator.validate_character({})
     assert_eq(out.experience, {"level": 1, "xp": 0})
+    assert_eq(out.attributes, {"allocated": {"might": 0, "grace": 0, "wit": 0}, "unspent": 0})
     assert_eq(out.health, {"current": 0.0})
     assert_eq(out.mana, {"current": 0.0})
     assert_eq(out.skills, {"known": [], "equipped": [null, null, null, null]})
     assert_push_warning("missing/invalid experience section")
+
+func test_missing_attributes_section_defaults_silently_since_it_is_additive_optional():
+    var data := _valid_document()
+    data.erase("attributes")
+    var out := SaveValidator.validate_character(data)
+    assert_eq(out.attributes, {"allocated": {"might": 0, "grace": 0, "wit": 0}, "unspent": 0})
+    assert_push_warning_count(0, "a v1 document lacking the attributes section entirely must not warn")
+
+func test_attributes_unknown_key_is_dropped_with_a_warning():
+    var data := _valid_document()
+    data.attributes = {"allocated": {"might": 1, "not_an_attribute": 5}, "unspent": 0}
+    var out := SaveValidator.validate_character(data)
+    assert_eq(out.attributes.allocated, {"might": 1, "grace": 0, "wit": 0})
+    assert_push_warning("unknown key")
+
+func test_attributes_missing_key_defaults_to_zero():
+    var data := _valid_document()
+    data.attributes = {"allocated": {"might": 3}, "unspent": 0}
+    var out := SaveValidator.validate_character(data)
+    assert_eq(out.attributes.allocated, {"might": 3, "grace": 0, "wit": 0})
+
+func test_attributes_negative_allocated_count_clamps_to_zero_with_a_warning():
+    var data := _valid_document()
+    data.attributes = {"allocated": {"might": -4, "grace": 0, "wit": 0}, "unspent": 0}
+    var out := SaveValidator.validate_character(data)
+    assert_eq(out.attributes.allocated.might, 0)
+    assert_push_warning("negative")
+
+func test_attributes_mistyped_unspent_defaults_to_zero_with_a_warning():
+    var data := _valid_document()
+    data.attributes = {"allocated": {"might": 0, "grace": 0, "wit": 0}, "unspent": "lots"}
+    var out := SaveValidator.validate_character(data)
+    assert_eq(out.attributes.unspent, 0)
+    assert_push_warning("attributes.unspent")
+
+func test_attributes_negative_unspent_clamps_to_zero_with_a_warning():
+    var data := _valid_document()
+    data.attributes = {"allocated": {"might": 0, "grace": 0, "wit": 0}, "unspent": -2}
+    var out := SaveValidator.validate_character(data)
+    assert_eq(out.attributes.unspent, 0)
+    assert_push_warning("attributes.unspent")
+
+func test_non_dictionary_attributes_section_defaults_with_a_warning():
+    var data := _valid_document()
+    data.attributes = "not a dictionary"
+    var out := SaveValidator.validate_character(data)
+    assert_eq(out.attributes, {"allocated": {"might": 0, "grace": 0, "wit": 0}, "unspent": 0})
+    assert_push_warning("invalid attributes section")
 
 func test_level_below_one_is_clamped_to_one():
     var data := _valid_document()

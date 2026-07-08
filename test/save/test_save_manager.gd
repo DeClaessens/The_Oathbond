@@ -40,9 +40,11 @@ func _make_player() -> Player:
 func test_serialize_character_captures_played_state():
     var player := _make_player()
     var xp := ExperienceComponent.of(player)
+    var attributes := AttributesComponent.of(player)
     var health := HealthComponent.of(player)
     var mana := ManaComponent.of(player)
     xp.award_xp(xp.xp_to_next(1) + xp.xp_to_next(2) + 3)
+    attributes.allocate(StatKeys.MIGHT)
     health.apply_damage(20.0, StatKeys.DamageType.PHYSICAL, null)
     mana.spend(15.0)
     player.abilities.unequip(0)
@@ -53,6 +55,7 @@ func test_serialize_character_captures_played_state():
     assert_eq(data.version, 1)
     assert_eq(data.id, "default")
     assert_eq(data.experience, xp.save_state())
+    assert_eq(data.attributes, attributes.save_state())
     assert_eq(data.health, health.save_state())
     assert_eq(data.mana, mana.save_state())
     assert_eq(data.skills, player.save_skill_state())
@@ -60,9 +63,12 @@ func test_serialize_character_captures_played_state():
 func test_round_trip_restores_played_state_on_a_fresh_graph():
     var played := _make_player()
     var xp := ExperienceComponent.of(played)
+    var attributes := AttributesComponent.of(played)
     var health := HealthComponent.of(played)
     var mana := ManaComponent.of(played)
     xp.award_xp(xp.xp_to_next(1) + xp.xp_to_next(2) + 3)
+    attributes.allocate(StatKeys.MIGHT)
+    attributes.allocate(StatKeys.WIT)
     health.apply_damage(20.0, StatKeys.DamageType.PHYSICAL, null)
     mana.spend(15.0)
     played.abilities.unequip(1)
@@ -73,6 +79,7 @@ func test_round_trip_restores_played_state_on_a_fresh_graph():
     manager.apply_character(fresh, data)
 
     var fresh_xp := ExperienceComponent.of(fresh)
+    var fresh_attributes := AttributesComponent.of(fresh)
     var fresh_health := HealthComponent.of(fresh)
     var fresh_mana := ManaComponent.of(fresh)
     var fresh_stats := StatsComponent.of(fresh)
@@ -80,10 +87,24 @@ func test_round_trip_restores_played_state_on_a_fresh_graph():
 
     assert_eq(fresh_xp.level(), xp.level())
     assert_eq(fresh_xp.xp(), xp.xp())
+    assert_eq(fresh_attributes.save_state(), attributes.save_state())
     assert_eq(fresh_health.current(), health.current())
     assert_eq(fresh_mana.current(), mana.current())
     assert_eq(fresh_stats.get_stat(StatKeys.MAX_HEALTH), played_stats.get_stat(StatKeys.MAX_HEALTH))
     assert_eq(fresh.save_skill_state(), played.save_skill_state())
+
+func test_load_order_applies_attributes_before_health_clamps_current():
+    var fresh := _make_player()
+
+    manager.apply_character(fresh, {
+        "experience": {"level": 1, "xp": 0},
+        "attributes": {"allocated": {"might": 10, "grace": 0, "wit": 0}, "unspent": 0},
+        "health": {"current": 105.0},
+    })
+
+    var health := HealthComponent.of(fresh)
+    assert_eq(health.max_health(), 120.0, "base 100 + 10 Might * 2.0 must already be applied before health.load_state clamps current")
+    assert_eq(health.current(), 105.0, "the persisted current must survive the raised max, not be clamped against the pre-allocation max")
 
 func test_replay_equivalence_load_matches_leveling_in_play():
     var played := _make_player()
@@ -102,8 +123,10 @@ func test_replay_equivalence_load_matches_leveling_in_play():
 func test_save_then_load_then_save_produces_identical_document():
     var played := _make_player()
     var xp := ExperienceComponent.of(played)
+    var attributes := AttributesComponent.of(played)
     var health := HealthComponent.of(played)
     xp.award_xp(xp.xp_to_next(1) + 3)
+    attributes.allocate(StatKeys.GRACE)
     health.apply_damage(10.0, StatKeys.DamageType.PHYSICAL, null)
 
     var first: Dictionary = manager.serialize_character(played)
@@ -224,6 +247,7 @@ func test_malformed_document_is_sanitized_by_the_gate_with_one_warning_per_repai
     var player := _make_player()
     manager.apply_character(player, {
         "experience": {"level": 2, "xp": 999999},
+        "attributes": {"allocated": {"might": -3, "unknown_attr": 9}, "unspent": "lots"},
         "health": {"current": -5.0},
         "mana": {"current": 10.0},
         "skills": {
@@ -233,11 +257,14 @@ func test_malformed_document_is_sanitized_by_the_gate_with_one_warning_per_repai
     })
 
     var xp := ExperienceComponent.of(player)
+    var attributes := AttributesComponent.of(player)
     var health := HealthComponent.of(player)
     assert_eq(xp.level(), 2)
     assert_eq(xp.xp(), ExperienceComponent.xp_to_next(2) - 1, "xp must be clamped into range")
+    assert_eq(attributes.allocated(StatKeys.MIGHT), 0, "a negative allocated count must clamp to 0")
+    assert_eq(attributes.unspent(), 0, "a mistyped unspent must default to 0")
     assert_eq(health.current(), health.max_health(), "current <= 0 must load as a full restore")
     assert_eq(player.known_skills.size(), 1, "the unknown skill id must be dropped from known")
     assert_eq(String(player.known_skills[0].id), "sprint")
     assert_null(player.abilities.slots[1], "an equipped id missing from known must become an empty slot")
-    assert_push_warning_count(3)
+    assert_push_warning_count(6)

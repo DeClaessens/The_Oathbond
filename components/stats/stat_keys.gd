@@ -16,6 +16,13 @@ const CRIT_MULTI          := &"crit_multi"
 const COOLDOWN_REDUCTION  := &"cooldown_reduction"
 const MANA_COST_REDUCTION := &"mana_cost_reduction"
 
+## Attributes (M2.2): ordinary string-keyed stats, not `Stat` enum entries --
+## like `dmg_<type>`, they compose via base + Modifiers like any other stat
+## and feed derived stats through StatsComponent.DERIVATIONS (ADR-0016).
+const MIGHT := &"might"
+const GRACE := &"grace"
+const WIT   := &"wit"
+
 static func dmg(type: StringName) -> StringName:
     return StringName("dmg_%s" % type)
 

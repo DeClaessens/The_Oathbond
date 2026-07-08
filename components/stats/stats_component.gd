@@ -6,6 +6,18 @@ extends Node
 
 @export var base_stats: Dictionary = {}
 
+## The fixed one-way derivation table (ADR-0016): source attribute -> array
+## of [derived_stat, per_point_factor]. Sources are always attributes;
+## deriveds are never themselves sources -- cycles are impossible by
+## construction, not by a runtime check. Adding a derivation is a one-line
+## edit here; confirm any component caching the derived stat refreshes on
+## its key.
+const DERIVATIONS := {
+    &"might": [[&"max_health", 2.0]],
+    &"wit":   [[&"max_mana", 1.0]],
+    &"grace": [[&"crit_multi", 0.005]],
+}
+
 var _mods: Array[StatModifier] = []
 
 signal stat_changed(stat: StringName, value: float)
@@ -16,7 +28,21 @@ static func of(node: Node) -> StatsComponent:
     return node.get_node_or_null(^"StatsComponent") as StatsComponent
 
 func get_stat(stat: StringName) -> float:
-    return _compose(float(base_stats.get(stat, 0.0)), _mods_for(stat))
+    var base: float = float(base_stats.get(stat, 0.0)) + _derived_contribution(stat)
+    return _compose(base, _mods_for(stat))
+
+## Resolves `stat`'s derived contribution from DERIVATIONS at the FLAT tier
+## (ADR-0016): get_stat(source) composes the source attribute's own base +
+## mods, so the derived value tracks the total attribute including gear, and
+## +% modifiers on the derived stat itself still amplify it downstream in
+## _compose. Single recursion level (derived -> source, never further).
+func _derived_contribution(stat: StringName) -> float:
+    var total := 0.0
+    for source in DERIVATIONS:
+        for pair in DERIVATIONS[source]:
+            if pair[0] == stat:
+                total += get_stat(source) * pair[1]
+    return total
 
 func scale_outgoing(base: float, type: StatKeys.DamageType) -> float:
     return _compose(base, _mods_for(StatKeys.dmg(StatKeys.damage_type_name(type))))
@@ -61,7 +87,7 @@ func add_modifier(mod: StatModifier) -> void:
                     existing.duration = mod.duration
                     existing.source = mod.source
                     existing.remaining = mod.duration
-                    stat_changed.emit(existing.stat, get_stat(existing.stat))
+                    _emit_stat_changed(existing.stat)
                     return
             StatModifier.StackMode.STACK:
                 var cap := maxi(mod.max_stacks, 1)
@@ -71,12 +97,25 @@ func add_modifier(mod: StatModifier) -> void:
 
     mod.remaining = mod.duration
     _mods.append(mod)
-    stat_changed.emit(mod.stat, get_stat(mod.stat))
+    _emit_stat_changed(mod.stat)
 
 func remove_modifier(mod: StatModifier) -> void:
     if _mods.has(mod):
         _mods.erase(mod)
-        stat_changed.emit(mod.stat, get_stat(mod.stat))
+        _emit_stat_changed(mod.stat)
+
+## The single site every `stat_changed` emission funnels through (ADR-0016):
+## emits for `stat` itself, then for every derived stat that has `stat` as a
+## DERIVATIONS source, so cached pools (HealthComponent, ManaComponent) never
+## go stale when an attribute moves. Called from every emit site -- add_modifier
+## (both the REFRESH and normal paths), remove_modifier, and the _process
+## expiry sweep -- so no future emit site can forget it.
+func _emit_stat_changed(stat: StringName) -> void:
+    stat_changed.emit(stat, get_stat(stat))
+    if DERIVATIONS.has(stat):
+        for pair in DERIVATIONS[stat]:
+            var derived: StringName = pair[0]
+            stat_changed.emit(derived, get_stat(derived))
 
 func _find_by_key(key: StringName) -> StatModifier:
     for m in _mods:
@@ -112,7 +151,7 @@ func _process(delta: float) -> void:
     if not expired_stats.is_empty():
         _mods = survivors
         for s in expired_stats:
-            stat_changed.emit(s, get_stat(s))
+            _emit_stat_changed(s)
 
 func mitigate_incoming(raw: float, type: StatKeys.DamageType) -> float:
     var resist := clampf(get_stat(StatKeys.resist(StatKeys.damage_type_name(type))), 0.0, 0.9)

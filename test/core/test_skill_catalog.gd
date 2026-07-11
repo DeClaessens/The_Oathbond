@@ -11,6 +11,15 @@ func test_known_skills_resolve_by_id():
 func test_unknown_id_returns_null():
     assert_null(SkillCatalog.by_id(&"not_a_real_skill"))
 
+func test_grantable_skills_excludes_slime_bite_in_catalog_order():
+    var grantable := SkillCatalog.grantable_skills()
+
+    var ids: Array[StringName] = []
+    for skill in grantable:
+        assert_true(skill.player_grantable)
+        ids.append(skill.id)
+    assert_eq(ids, [&"sprint", &"super_jump", &"spark", &"smite", &"ember_bolt"])
+
 func test_catalog_lists_every_skill_under_library_with_unique_non_empty_ids():
     var catalog: SkillCatalog = load(SkillCatalog.CATALOG_PATH)
     var catalog_paths := {}

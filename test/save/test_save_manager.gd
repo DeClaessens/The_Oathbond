@@ -291,6 +291,17 @@ func test_equipment_round_trips_through_serialize_apply():
     assert_eq(restored.definition_id, equipped.definition_id)
     assert_eq(StatsComponent.of(fresh).get_stat(StatKeys.MAX_HEALTH), StatsComponent.of(played).get_stat(StatKeys.MAX_HEALTH))
 
+func test_a_grant_and_equip_loadout_change_survives_the_save_gate():
+    var played := _make_player()
+    played.grant_and_equip(SkillCatalog.by_id(&"spark"), 3)
+
+    var data: Dictionary = manager.serialize_character(played)
+
+    var fresh := _make_player()
+    manager.apply_character(fresh, data)
+
+    assert_eq(String(fresh.abilities.slots[3].skill.id), "spark", "equipping through grant_and_equip must have learned it, so the Save Gate keeps it equipped")
+
 func test_load_order_applies_equipment_before_pools_clamp_current():
     var fresh := _make_player()
 

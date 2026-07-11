@@ -13,5 +13,6 @@ enum Targeting { SELF, ALLY, ENEMY, AREA, NONE }
 @export var targeting: Targeting = Targeting.SELF
 @export var targeting_range: float = 600.0
 @export var ignores_global_cooldown: bool = false
+@export var player_grantable: bool = true
 
 @export var effects: Array[SkillEffect] = []

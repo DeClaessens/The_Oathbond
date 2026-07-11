@@ -16,15 +16,15 @@ func _ready() -> void:
 
     var sprint: Skill = load("res://skills/library/sprint.tres")
     var super_jump: Skill = load("res://skills/library/super_jump.tres")
-    var spark: Skill = load("res://skills/library/spark.tres")
+    var ember_bolt: Skill = load("res://skills/library/ember_bolt.tres")
     var smite: Skill = load("res://skills/library/smite.tres")
     learn_skill(sprint)
     learn_skill(super_jump)
-    learn_skill(spark)
+    learn_skill(ember_bolt)
     learn_skill(smite)
     abilities.equip(sprint, 0)
     abilities.equip(super_jump, 1)
-    abilities.equip(spark, 2)
+    abilities.equip(ember_bolt, 2)
     abilities.equip(smite, 3)
 
 func learn_skill(skill: Skill) -> void:
@@ -32,6 +32,13 @@ func learn_skill(skill: Skill) -> void:
         return
     known_skills.append(skill)
     skill_learned.emit(skill)
+
+## Learn-then-equip in one call: the Save Gate empties an equipped slot whose
+## id isn't in known_skills, so the Skills Window must never equip without
+## learning first (ADR-0015).
+func grant_and_equip(skill: Skill, index: int) -> void:
+    learn_skill(skill)
+    abilities.equip(skill, index)
 
 ## Player-level character-file section: known/equipped skills persist as
 ## Skill.id through the SkillCatalog, never as resource paths (ADR-0015).

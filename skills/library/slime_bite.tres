@@ -14,6 +14,7 @@ id = &"slime_bite"
 display_name = "Bite"
 description = "A snapping bite that deals direct physical damage."
 cooldown = 1.2
+player_grantable = false
 targeting = 2
 targeting_range = 90.0
 effects = Array[ExtResource("1_effect")]([SubResource("Resource_slime_bite_damage")])

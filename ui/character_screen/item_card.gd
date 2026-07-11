@@ -79,7 +79,7 @@ var _stats: StatsComponent
 func bind_stats(stats: StatsComponent) -> void:
     _stats = stats
 
-func set_item(item: ItemInstance, compare_to: ItemInstance = null) -> void:
+func set_item(item: ItemInstance, compare_to: ItemInstance = null, validation: EquipResult = null) -> void:
     for child in _mods_box.get_children():
         child.queue_free()
     for child in _comparison_box.get_children():
@@ -113,13 +113,11 @@ func set_item(item: ItemInstance, compare_to: ItemInstance = null) -> void:
     else:
         _requirement_label.show()
         var lines: Array[String] = []
-        var fails := false
         for attr in requirement:
             var required: float = float(requirement[attr])
             lines.append("Requires %s %s" % [_stat_display_name(StringName(attr)), _format_number(required)])
-            if _stats != null and _stats.get_stat(StringName(attr)) < required:
-                fails = true
         _requirement_label.text = ", ".join(lines)
+        var fails := validation != null and validation.reason == &"requirements_not_met"
         _requirement_label.add_theme_color_override("font_color", REQUIREMENT_FAIL_COLOR if fails else REQUIREMENT_COLOR)
 
     if compare_to == null:
@@ -188,9 +186,10 @@ func _format_number(value: float) -> String:
 func _stat_display_name(stat: StringName) -> String:
     return STAT_DISPLAY_NAMES.get(stat, String(stat))
 
-## Aggregates one ItemInstance's mods (implicits + rolled) into
-## `{"<stat>|<op>": {"stat":, "op":, "value": summed}}` so multiple entries
-## on the same (stat, op) combine before comparison.
+## Aggregates one ItemInstance's mods (implicits + rolled) by (stat, op).
+## FLAT and ADD_PCT combine additively; MULT_PCT stores the equivalent
+## compounded modifier value so the displayed comparison matches
+## StatsComponent's composition formula.
 static func _aggregate(item: ItemInstance) -> Dictionary:
     var out := {}
     if item == null:
@@ -204,7 +203,10 @@ static func _aggregate(item: ItemInstance) -> Dictionary:
         var triple := ItemAffix.triple(src)
         var key := "%s|%d" % [String(triple.stat), int(triple.op)]
         if out.has(key):
-            out[key].value += triple.value
+            if triple.op == StatModifier.Op.MULT_PCT:
+                out[key].value = (1.0 + out[key].value) * (1.0 + triple.value) - 1.0
+            else:
+                out[key].value += triple.value
         else:
             out[key] = {"stat": triple.stat, "op": triple.op, "value": triple.value}
     return out

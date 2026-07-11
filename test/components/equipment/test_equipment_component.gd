@@ -152,6 +152,39 @@ func test_equip_into_occupied_slot_swaps_old_item_back_to_inventory():
     assert_eq(inventory.items()[0], old_hide)
     assert_eq(stats.get_stat(&"dmg_physical"), 9.0, "no mod leak -- only the new item's mods remain")
 
+func test_swap_at_capacity_frees_the_incoming_inventory_slot_before_returning_the_old_item():
+    var entity := _make_character({StatKeys.MIGHT: 10.0})
+    var equipment := EquipmentComponent.of(entity)
+    var inventory := InventoryComponent.of(entity)
+    var old_hide := _item(&"worn_hide")
+    var new_hide := _item(&"worn_hide")
+    equipment.equip(old_hide, ItemTypes.EquipSlot.BODY)
+    inventory.add(new_hide)
+    for i in range(InventoryComponent.CAPACITY - 1):
+        assert_true(inventory.add(_item(&"rusted_sickle")))
+
+    var result := equipment.equip(new_hide, ItemTypes.EquipSlot.BODY)
+
+    assert_true(result.ok)
+    assert_eq(equipment.equipped(ItemTypes.EquipSlot.BODY), new_hide)
+    assert_eq(inventory.size(), InventoryComponent.CAPACITY)
+    assert_true(inventory.items().has(old_hide), "the outgoing item must not be lost at capacity")
+
+func test_unequip_at_capacity_leaves_the_item_equipped():
+    var entity := _make_character({StatKeys.MIGHT: 10.0})
+    var equipment := EquipmentComponent.of(entity)
+    var inventory := InventoryComponent.of(entity)
+    var hide := _item(&"worn_hide", [ItemAffix.new(StatKeys.MIGHT, StatModifier.Op.FLAT, 5.0)])
+    equipment.equip(hide, ItemTypes.EquipSlot.BODY)
+    for i in InventoryComponent.CAPACITY:
+        assert_true(inventory.add(_item(&"rusted_sickle")))
+
+    equipment.unequip(ItemTypes.EquipSlot.BODY)
+
+    assert_eq(equipment.equipped(ItemTypes.EquipSlot.BODY), hide)
+    assert_eq(StatsComponent.of(entity).get_stat(StatKeys.MIGHT), 15.0)
+    assert_eq(inventory.size(), InventoryComponent.CAPACITY)
+
 func test_a_ring_equips_into_ring_1_then_a_second_into_ring_2():
     var entity := _make_character()
     var equipment := EquipmentComponent.of(entity)
@@ -165,6 +198,20 @@ func test_a_ring_equips_into_ring_1_then_a_second_into_ring_2():
     assert_true(result_b.ok)
     assert_eq(equipment.equipped(ItemTypes.EquipSlot.RING_1), ring_a)
     assert_eq(equipment.equipped(ItemTypes.EquipSlot.RING_2), ring_b)
+
+func test_dragging_an_equipped_ring_to_the_other_ring_slot_swaps_them():
+    var entity := _make_character()
+    var equipment := EquipmentComponent.of(entity)
+    var ring_a := _item(&"iron_ring")
+    var ring_b := _item(&"iron_ring")
+    equipment.equip(ring_a, ItemTypes.EquipSlot.RING_1)
+    equipment.equip(ring_b, ItemTypes.EquipSlot.RING_2)
+
+    var result := equipment.equip(ring_a, ItemTypes.EquipSlot.RING_2)
+
+    assert_true(result.ok)
+    assert_eq(equipment.equipped(ItemTypes.EquipSlot.RING_1), ring_b)
+    assert_eq(equipment.equipped(ItemTypes.EquipSlot.RING_2), ring_a)
 
 func test_equipment_changed_emits_with_the_slot():
     var entity := _make_character()

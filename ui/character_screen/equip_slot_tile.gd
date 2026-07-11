@@ -72,7 +72,8 @@ func refresh() -> void:
 
 func _on_gui_input(event: InputEvent) -> void:
     if _item != null and event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-        _equipment.unequip(equip_slot)
+        if not _equipment.unequip(equip_slot) and _screen != null:
+            _screen.set_status("Inventory full")
 
 func _on_mouse_entered() -> void:
     if _item != null and _screen != null:
@@ -100,7 +101,7 @@ func _can_drop_data(_pos: Vector2, data: Variant) -> bool:
             var other_item := _equipment.equipped(other_slot)
             ok = other_slot != equip_slot and other_item != null and Equipment.validate(other_item, equip_slot, _stats).ok
     _set_highlight(ok)
-    return ok
+    return data is Dictionary and data.get("kind") in ["item", "equipped"]
 
 func _drop_data(_pos: Vector2, data: Variant) -> void:
     _set_highlight(false)
@@ -111,7 +112,9 @@ func _drop_data(_pos: Vector2, data: Variant) -> void:
     elif data.get("kind") == "equipped":
         var other_slot: ItemTypes.EquipSlot = data.get("slot")
         var other_item := _equipment.equipped(other_slot)
-        _equipment.equip(other_item, equip_slot)
+        var result := _equipment.equip(other_item, equip_slot)
+        if not result.ok and _screen != null:
+            _screen.set_status(_reason_text(result.reason))
 
 func _reason_text(reason: StringName) -> String:
     match reason:
@@ -119,6 +122,8 @@ func _reason_text(reason: StringName) -> String:
             return "Wrong slot"
         &"requirements_not_met":
             return "Requirements not met"
+        &"inventory_full":
+            return "Inventory full"
     return String(reason)
 
 func _notification(what: int) -> void:

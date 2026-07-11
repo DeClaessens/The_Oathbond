@@ -31,20 +31,47 @@ func _ready() -> void:
 ## back to inventory, removes `item` from inventory, records it, and applies
 ## its mods. On failure applies nothing and returns the reason.
 func equip(item: ItemInstance, slot: ItemTypes.EquipSlot) -> EquipResult:
-    var result := Equipment.validate(item, slot, _stats)
-    if not result.ok:
+    var source_slot: Variant = _equipped_slot_for(item)
+    var previous: ItemInstance = _equipped.get(slot)
+
+    if source_slot != null and source_slot != slot:
+        var result := Equipment.validate(item, slot, _stats)
+        if not result.ok:
+            return result
+        if previous != null:
+            _equipped[source_slot] = previous
+            _equipped[slot] = item
+            equipment_changed.emit(source_slot)
+            equipment_changed.emit(slot)
+            return result
+        _equipped.erase(source_slot)
+        _equipped[slot] = item
+        equipment_changed.emit(source_slot)
+        equipment_changed.emit(slot)
         return result
 
-    var previous: ItemInstance = _equipped.get(slot)
+    if source_slot == slot:
+        return Equipment.validate(item, slot, _stats)
+
+    if previous != null and _stats != null:
+        _stats.remove_by_source(previous)
+    var result := Equipment.validate(item, slot, _stats)
+    if not result.ok:
+        if previous != null:
+            _apply_mods(previous)
+        return result
+
+    var item_is_in_inventory := _inventory != null and _inventory.items().has(item)
+    if previous != null:
+        if _inventory == null or (not item_is_in_inventory and _inventory.size() >= InventoryComponent.CAPACITY):
+            _apply_mods(previous)
+            return EquipResult.failure(&"inventory_full")
+
+    if item_is_in_inventory:
+        _inventory.remove(item)
     if previous != null:
         _equipped.erase(slot)
-        if _stats != null:
-            _stats.remove_by_source(previous)
-        if _inventory != null:
-            _inventory.add(previous)
-
-    if _inventory != null:
-        _inventory.remove(item)
+        _inventory.add(previous)
     _equipped[slot] = item
     _apply_mods(item)
     equipment_changed.emit(slot)
@@ -52,16 +79,19 @@ func equip(item: ItemInstance, slot: ItemTypes.EquipSlot) -> EquipResult:
 
 ## Removes the item's mods by source (the single ADR-0016-routed bulk path,
 ## decision 5) and returns it to inventory.
-func unequip(slot: ItemTypes.EquipSlot) -> void:
+func unequip(slot: ItemTypes.EquipSlot) -> bool:
     if not _equipped.has(slot):
-        return
+        return false
     var item: ItemInstance = _equipped[slot]
+    if _inventory == null or _inventory.size() >= InventoryComponent.CAPACITY:
+        push_warning("EquipmentComponent.unequip: inventory capacity prevents returning %s" % item.definition_id)
+        return false
     _equipped.erase(slot)
     if _stats != null:
         _stats.remove_by_source(item)
-    if _inventory != null:
-        _inventory.add(item)
+    _inventory.add(item)
     equipment_changed.emit(slot)
+    return true
 
 func equipped(slot: ItemTypes.EquipSlot) -> ItemInstance:
     return _equipped.get(slot)
@@ -84,7 +114,9 @@ static func default_slot_for(item: ItemInstance, equipment: EquipmentComponent) 
     if def.slot == ItemTypes.ItemSlot.RING:
         if equipment == null or equipment.equipped(ItemTypes.EquipSlot.RING_1) == null:
             return ItemTypes.EquipSlot.RING_1
-        return ItemTypes.EquipSlot.RING_2
+        if equipment.equipped(ItemTypes.EquipSlot.RING_2) == null:
+            return ItemTypes.EquipSlot.RING_2
+        return ItemTypes.EquipSlot.RING_1
     for slot in ItemTypes.EquipSlot.values():
         if ItemTypes.accepts(slot, def.slot):
             return slot
@@ -148,3 +180,9 @@ func _apply_mods(item: ItemInstance) -> void:
         mod.source = item
         mod.duration = 0.0
         _stats.add_modifier(mod)
+
+func _equipped_slot_for(item: ItemInstance) -> Variant:
+    for slot in _equipped:
+        if _equipped[slot] == item:
+            return slot
+    return null

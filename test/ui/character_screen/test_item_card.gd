@@ -101,6 +101,21 @@ func test_multiple_affixes_on_the_same_stat_and_op_sum_before_comparing():
     var d := _find(deltas, &"dmg_ember")
     assert_almost_eq(d.delta, 7.0, 0.0001)
 
+func test_multiple_multiplicative_affixes_compound_before_comparing():
+    var candidate := _item(&"rusted_sickle", [
+        ItemAffix.new(&"dmg_ember", StatModifier.Op.MULT_PCT, 0.1),
+        ItemAffix.new(&"dmg_ember", StatModifier.Op.MULT_PCT, 0.1),
+    ])
+    var equipped := _item(&"rusted_sickle", [
+        ItemAffix.new(&"dmg_ember", StatModifier.Op.MULT_PCT, 0.2),
+    ])
+
+    var deltas := ItemCard.mod_deltas(candidate, equipped)
+
+    var d := _find(deltas, &"dmg_ember")
+    assert_almost_eq(d.delta, 0.01, 0.0001, "1.1 × 1.1 is a 21% multiplier, not a summed 20%")
+    assert_true(d.gain)
+
 func test_implicit_mods_from_the_definition_are_included():
     # rusted_sickle's implicit_mods carries a fixed +6 dmg_physical.
     var candidate := _item(&"rusted_sickle", [])

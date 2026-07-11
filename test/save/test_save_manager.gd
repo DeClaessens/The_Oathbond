@@ -324,6 +324,23 @@ func test_illegal_on_load_equipment_lands_in_inventory_with_a_warning_not_equipp
     assert_eq(inventory.items()[0].definition_id, &"plate_helm")
     assert_push_warning("no longer qualifies")
 
+func test_illegal_on_load_equipment_does_not_overfill_inventory():
+    var fresh := _make_player()
+    var inventory_data: Array = []
+    for i in InventoryComponent.CAPACITY:
+        inventory_data.append({"def_id": "rusted_sickle", "rarity": int(ItemTypes.Rarity.COMMON), "affixes": []})
+
+    manager.apply_character(fresh, {
+        "attributes": {"allocated": {"might": 0, "grace": 0, "wit": 0}, "unspent": 0},
+        "equipment": {
+            "HELM": {"def_id": "plate_helm", "rarity": int(ItemTypes.Rarity.COMMON), "affixes": []},
+        },
+        "inventory": inventory_data,
+    })
+
+    assert_eq(InventoryComponent.of(fresh).size(), InventoryComponent.CAPACITY)
+    assert_push_warning("inventory capacity")
+
 func test_migrate_passes_a_current_version_document_through_unchanged():
     var player := _make_player()
     var data: Dictionary = manager.serialize_character(player)

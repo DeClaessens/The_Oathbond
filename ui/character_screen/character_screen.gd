@@ -125,7 +125,7 @@ func show_tooltip(item: ItemInstance, compare_to: ItemInstance, target_rect: Rec
     if get_viewport().gui_is_dragging():
         return
     _tooltip_card.bind_stats(_stats)
-    _tooltip_card.set_item(item, compare_to)
+    _tooltip_card.set_item(item, compare_to, _validation_for_item(item))
     _tooltip.show()
     _position_tooltip(target_rect)
 
@@ -137,6 +137,8 @@ func _set_open(open: bool) -> void:
     get_tree().paused = open
     if open:
         _status_line.text = ""
+    else:
+        hide_tooltip()
 
 func _rebuild_grid() -> void:
     if _grid == null or _inventory == null:
@@ -162,6 +164,7 @@ func _make_inventory_tile(item: ItemInstance) -> InventorySlotTile:
     return tile
 
 func _on_equipment_changed(_slot: ItemTypes.EquipSlot) -> void:
+    hide_tooltip()
     for tile in _slot_tiles:
         tile.refresh()
     _refresh_pinned()
@@ -208,7 +211,15 @@ func _refresh_pinned() -> void:
     var target = EquipmentComponent.default_slot_for(_pinned_item, _equipment)
     var equipped_there: ItemInstance = _equipment.equipped(target) if target != null and _equipment != null else null
     _pinned_card.bind_stats(_stats)
-    _pinned_card.set_item(_pinned_item, equipped_there)
+    _pinned_card.set_item(_pinned_item, equipped_there, _validation_for_item(_pinned_item))
+
+func _validation_for_item(item: ItemInstance) -> EquipResult:
+    if item == null or _equipment == null or _stats == null:
+        return null
+    var target: Variant = EquipmentComponent.default_slot_for(item, _equipment)
+    if target == null:
+        return null
+    return Equipment.validate(item, target, _stats)
 
 func _position_tooltip(target_rect: Rect2) -> void:
     var viewport_size := get_viewport().get_visible_rect().size

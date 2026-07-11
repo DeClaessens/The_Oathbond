@@ -53,5 +53,8 @@ func save_state() -> Array:
 func load_state(section: Array) -> void:
     _items.clear()
     for entry in section:
+        if _items.size() >= CAPACITY:
+            push_warning("InventoryComponent.load_state: inventory capacity reached; remaining saved items were dropped")
+            break
         _items.append(ItemInstance.from_dict(entry))
     inventory_changed.emit()

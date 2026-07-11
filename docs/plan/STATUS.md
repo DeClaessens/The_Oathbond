@@ -4,7 +4,7 @@ One page, always current. Any session (human or agent) starting work reads
 this first instead of re-deriving state from git history. **Whoever merges a
 story or closes a decision updates this file in the same commit.**
 
-Last updated: 2026-07-08 (M2.2 + M2.5 merged).
+Last updated: 2026-07-11 (M2.4 + M2.6 merged).
 
 ## Where we are
 
@@ -16,7 +16,8 @@ Last updated: 2026-07-08 (M2.2 + M2.5 merged).
   (derived stats), ADR-0017 (crit), attribute names locked (Might/Grace/Wit),
   and four `ready-for-agent` briefs (M2.2–M2.5). M2.5 (crit & stat roster)
   merged 2026-07-08. M2.2 (attributes) merged 2026-07-08; M2.3 (drops &
-  inventory) in progress. M2.4 (equip gate) unblocks once M2.3 merges.
+  inventory) in progress. M2.4 (equip gate) and M2.6 (skills window) merged
+  2026-07-11.
 - M0 (Combat completeness) merged 2026-07-07; its playable exit criterion
   lives in the proving-grounds level (`levels/`) with the Slime.
 
@@ -37,8 +38,9 @@ Last updated: 2026-07-08 (M2.2 + M2.5 merged).
 | M2.1 | Design pass: M2 ADRs + briefs | ✅ done 2026-07-08 — ADR-0016, ADR-0017, briefs m2-02…m2-05, attribute names locked |
 | M2.2 | Attributes (Might/Grace/Wit) | ✅ merged 2026-07-08 (`6133063`) — ADR-0016 derived stats (might→hp, wit→mana, grace→crit_multi) + AttributesComponent + allocation panel; suite 279/279 |
 | M2.3 | Item drops & inventory | 🔵 `ready-for-agent` — dispatchable now (parallel wave 1) |
-| M2.4 | Equip gate & slots | ⚪ `ready-for-agent` — blocked until M2.2 + M2.3 merge |
+| M2.4 | Equip gate & slots | ✅ merged 2026-07-11 (`f0621cc`) — Equip Gate, 11 slots, persisted equipment, Character Screen, and review hardening; suite 367/367 before merge |
 | M2.5 | Crit & new stat roster | ✅ merged 2026-07-08 (`6cbe257`) — crit via DamagePacket/roll_outgoing (ADR-0017), health_regen, CDR/MCR caps; suite 243/243 |
+| M2.6 | Skills Window (loadout & swap) | ✅ merged 2026-07-11 (`c9495a2`) — grantable-skill loadout window and persistence coverage |
 | M3+ | Skill splicing, journey, … | ⚪ not started — see `epics-and-stories.md` |
 
 ## Standing pointers

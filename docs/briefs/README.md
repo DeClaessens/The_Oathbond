@@ -46,11 +46,14 @@ even though only Bonds will use it later. **M1.2 merged 2026-07-08.**
 | 03 | [Item drops & inventory](m2-03-item-drops-and-inventory.md) | M2.1 |
 | 04 | [Equip gate & slots](m2-04-equip-gate-and-slots.md) | 02 + 03 |
 | 05 | [Crit & the new stat roster](m2-05-crit-and-stat-roster.md) | M2.1 (ADR-0017) |
+| 06 | [Skills Window (loadout & swap)](m2-06-skills-window.md) | Epic M1 (Save Gate) |
 
 M2 exit criterion: killing things drops gear that changes your stats.
 Contracts: ADR-0016 (derived stats), ADR-0017 (crit). M2.2/M2.3/M2.5
 parallelize after M2.1; M2.4 needs 02 + 03. All extend the M1 save gate
-(ADR-0015) with new document sections.
+(ADR-0015) with new document sections. M2.6 is an off-theme QoL/UX add
+(skill-swap window) that only needs Epic M1's Save Gate — parallel with any
+M2 story; it touches the skill/ability layer and a new UI panel, not loot.
 
 ## Conventions that apply to every brief
 

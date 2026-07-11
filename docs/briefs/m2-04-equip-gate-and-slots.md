@@ -159,6 +159,44 @@ validated at one gate" (after the save gate). Design source:
 - `+attribute` affixes being *authored into pools* is M2.3's pool content;
   here they must merely equip and count toward requirements/derived stats.
 - Crit and the offense-stat consumers (M2.5).
-- Comparing items / stat-diff tooltips, drag-drop, auto-equip, loadouts.
+- ~~Comparing items / stat-diff tooltips, drag-drop, auto-equip, loadouts~~
+  — comparisons and drag-drop were pulled INTO scope by the 2026-07-11
+  design pass (addendum below); auto-equip and loadouts stay out.
 - Flask slots (reserved).
 - Set bonuses, item levels, socketing.
+
+## Design addendum — Character Screen (2026-07-11)
+
+A UI design pass (two rounds of HTML mock galleries, Thomas's verdict:
+"variant D, paper-doll + pin column") superseded decision 8's
+"functional, not styled" panel and pulled item comparison + drag-to-equip
+into this story. Decisions of record, implemented in
+`ui/character_screen/`:
+
+1. **One Character Screen replaces the M2.3 inventory panel** (deleted
+   `ui/inventory/`). Toggle stays `toggle_inventory` (I); SkillsWindow
+   idiom (pause on open, Esc closes, dim backdrop).
+2. **Layout (variant D):** paper-doll left — the 11 equip slots placed
+   anatomically around a silhouette, stats block (Might/Grace/Wit,
+   Health/Mana) beneath — | 6×5 inventory grid | persistent inspect
+   column right.
+3. **Rarity reads as a colored tile border** (Common grey / Quality green
+   / Masterwork gold / Heirloom orange — tables migrated into `ItemCard`).
+4. **Hover = custom tooltip card with delta lines** vs the equipped item:
+   green ▲ gains, red ▼ losses, zero-delta lines omitted. Direction
+   convention: "what changes if I swap to this item."
+5. **Click an inventory item = pin its card** (with the vs-equipped block)
+   in the inspect column, so reading stats never requires hover-holding.
+   ✕ unpins; the pin re-resolves on inventory changes.
+6. **Comparisons target the slot a drag would actually fill** — rings:
+   first free ring slot, else RING_1 — via one shared
+   `EquipmentComponent.default_slot_for`, so tooltip and drop agree.
+7. **`ItemCard` is the single renderer** for tooltip and pinned card;
+   its static `mod_deltas` does the comparison arithmetic (unit-tested).
+8. **Drag-to-equip:** legal slots highlight green (legality from
+   `Equipment.validate`, never re-derived); clicking an equipped tile
+   unequips; refusals surface as plain text on a status line.
+9. **`InventoryComponent.CAPACITY` 40 → 30** (Thomas, 2026-07-11) —
+   exact 6×5 grid.
+10. **No stack badges** (instances never stack) and **no Equip button**
+    in the card (drag and slot-click cover mutation).

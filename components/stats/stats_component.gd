@@ -104,6 +104,23 @@ func remove_modifier(mod: StatModifier) -> void:
         _mods.erase(mod)
         _emit_stat_changed(mod.stat)
 
+## Erases every modifier whose `.source == source` (equip's engine gap,
+## decision 5) in one bulk pass, then emits `stat_changed` once per affected
+## stat through the same dependent-emission helper every other emit site
+## uses -- a plain `_mods.erase` loop that forgot this would leave cached
+## pools (max_health from a +Might item) stale after unequip.
+func remove_by_source(source: Object) -> void:
+    var affected := {}
+    var survivors: Array[StatModifier] = []
+    for m in _mods:
+        if m.source == source:
+            affected[m.stat] = true
+        else:
+            survivors.append(m)
+    _mods = survivors
+    for stat in affected:
+        _emit_stat_changed(stat)
+
 ## The single site every `stat_changed` emission funnels through (ADR-0016):
 ## emits for `stat` itself, then for every derived stat that has `stat` as a
 ## DERIVATIONS source, so cached pools (HealthComponent, ManaComponent) never

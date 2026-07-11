@@ -269,6 +269,61 @@ func test_unknown_inventory_def_id_loads_sanitized_without_crash():
     assert_eq(InventoryComponent.of(player).size(), 1, "the unknown def_id entry is dropped at the gate")
     assert_push_warning("does not resolve")
 
+func _roll_and_equip(player: Player, def_id: StringName, slot: ItemTypes.EquipSlot) -> ItemInstance:
+    var inst := ItemRoller.roll(ItemCatalog.by_id(def_id))
+    EquipmentComponent.of(player).equip(inst, slot)
+    return inst
+
+func test_equipment_round_trips_through_serialize_apply():
+    var played := _make_player()
+    AttributesComponent.of(played).allocate(StatKeys.MIGHT)
+    var equipped := _roll_and_equip(played, &"worn_hide", ItemTypes.EquipSlot.BODY)
+
+    var data: Dictionary = manager.serialize_character(played)
+    assert_eq(data.equipment.keys(), ["BODY"])
+
+    var fresh := _make_player()
+    manager.apply_character(fresh, data)
+
+    var fresh_equipment := EquipmentComponent.of(fresh)
+    var restored: ItemInstance = fresh_equipment.equipped(ItemTypes.EquipSlot.BODY)
+    assert_not_null(restored)
+    assert_eq(restored.definition_id, equipped.definition_id)
+    assert_eq(StatsComponent.of(fresh).get_stat(StatKeys.MAX_HEALTH), StatsComponent.of(played).get_stat(StatKeys.MAX_HEALTH))
+
+func test_load_order_applies_equipment_before_pools_clamp_current():
+    var fresh := _make_player()
+
+    manager.apply_character(fresh, {
+        "experience": {"level": 1, "xp": 0},
+        "attributes": {"allocated": {"might": 0, "grace": 0, "wit": 0}, "unspent": 0},
+        "equipment": {
+            "BODY": {"def_id": "worn_hide", "rarity": int(ItemTypes.Rarity.QUALITY),
+                      "affixes": [{"stat": "max_health", "op": int(StatModifier.Op.FLAT), "value": 50.0}]},
+        },
+        "health": {"current": 140.0},
+    })
+
+    var health := HealthComponent.of(fresh)
+    assert_eq(health.max_health(), 150.0, "base 100 + 50 from equipped armor must already be applied before health.load_state clamps current")
+    assert_eq(health.current(), 140.0, "the persisted current must survive at 140/150, not clamp down to the base-only 100 max")
+
+func test_illegal_on_load_equipment_lands_in_inventory_with_a_warning_not_equipped():
+    var fresh := _make_player()
+
+    manager.apply_character(fresh, {
+        "attributes": {"allocated": {"might": 0, "grace": 0, "wit": 0}, "unspent": 0},
+        "equipment": {
+            "HELM": {"def_id": "plate_helm", "rarity": int(ItemTypes.Rarity.COMMON), "affixes": []},
+        },
+    })
+
+    assert_null(EquipmentComponent.of(fresh).equipped(ItemTypes.EquipSlot.HELM))
+    var inventory := InventoryComponent.of(fresh)
+    assert_eq(inventory.size(), 1, "the displaced item must land in inventory, not vanish")
+    assert_eq(inventory.items()[0].definition_id, &"plate_helm")
+    assert_push_warning("no longer qualifies")
+
 func test_migrate_passes_a_current_version_document_through_unchanged():
     var player := _make_player()
     var data: Dictionary = manager.serialize_character(player)

@@ -8,7 +8,7 @@ extends Node
 
 signal inventory_changed
 
-const CAPACITY := 40
+const CAPACITY := 30
 
 var _items: Array[ItemInstance] = []
 

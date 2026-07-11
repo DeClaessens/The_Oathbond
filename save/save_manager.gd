@@ -22,6 +22,7 @@ func _notification(what: int) -> void:
 func serialize_character(player: Node) -> Dictionary:
     var experience := ExperienceComponent.of(player)
     var attributes := AttributesComponent.of(player)
+    var equipment := EquipmentComponent.of(player)
     var health := HealthComponent.of(player)
     var mana := ManaComponent.of(player)
     var inventory := InventoryComponent.of(player)
@@ -30,16 +31,23 @@ func serialize_character(player: Node) -> Dictionary:
         "id": String(CHARACTER_ID),
         "experience": experience.save_state() if experience != null else {},
         "attributes": attributes.save_state() if attributes != null else {},
+        "equipment": equipment.save_state() if equipment != null else {},
         "health": health.save_state() if health != null else {},
         "mana": mana.save_state() if mana != null else {},
         "skills": player.save_skill_state() if player.has_method("save_skill_state") else {},
         "inventory": inventory.save_state() if inventory != null else [],
     }
 
-## Load order is fixed -- experience, then attributes, then health, then
-## mana, then skills (ADR-0015 / ADR-0016): growth modifiers and allocation
-## must raise max pools via stat_changed before the pools clamp their
-## persisted currents.
+## Load order is fixed -- experience, then attributes, then EQUIPMENT, then
+## health, then mana, then skills, then inventory (ADR-0015 / ADR-0016, M2.4
+## decision 7): growth modifiers and allocation must raise max pools via
+## stat_changed before the pools clamp their persisted currents, and
+## equipment must apply its own max-pool-affecting mods (a +max_health armor
+## piece, a +Might item) for the same reason -- a character saved at 140/150
+## (150 via armor) must not reload clamped to the base-only max. Equipment
+## loads before inventory specifically so an illegal-on-load item (below the
+## respec'd requirement) can be folded into the inventory section before
+## InventoryComponent.load_state replaces its contents wholesale.
 func apply_character(player: Node, data: Dictionary) -> void:
     var sanitized := SaveValidator.validate_character(data)
 
@@ -50,6 +58,11 @@ func apply_character(player: Node, data: Dictionary) -> void:
     var attributes := AttributesComponent.of(player)
     if attributes != null:
         attributes.load_state(sanitized.attributes)
+
+    var equipment := EquipmentComponent.of(player)
+    var displaced: Array = []
+    if equipment != null:
+        displaced = equipment.load_state(sanitized.equipment)
 
     var health := HealthComponent.of(player)
     if health != null:
@@ -64,7 +77,10 @@ func apply_character(player: Node, data: Dictionary) -> void:
 
     var inventory := InventoryComponent.of(player)
     if inventory != null:
-        inventory.load_state(sanitized.inventory)
+        var inventory_section: Array = sanitized.inventory.duplicate()
+        for item in displaced:
+            inventory_section.append(item.to_dict())
+        inventory.load_state(inventory_section)
 
 func save_character(player: Node) -> void:
     var data := serialize_character(player)

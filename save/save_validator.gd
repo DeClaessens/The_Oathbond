@@ -21,6 +21,7 @@ static func validate_character(data: Dictionary) -> Dictionary:
     out["attributes"] = _validate_attributes(src.get("attributes"))
     out["health"] = _validate_pool(src.get("health"), "health")
     out["mana"] = _validate_pool(src.get("mana"), "mana")
+    out["equipment"] = _validate_equipment(src.get("equipment"))
     out["skills"] = _validate_skills(src.get("skills"))
     out["inventory"] = _validate_inventory(src.get("inventory"))
     return out
@@ -157,6 +158,54 @@ static func _validate_skills(section) -> Dictionary:
             equipped.append(null)
 
     return {"known": known, "equipped": equipped}
+
+## Equipment is a dict section keyed by EquipSlot name (ADR-0015, M2.4):
+## `{<EquipSlot name>: {def_id, rarity, affixes}}`, same instance shape as
+## inventory. Purely STRUCTURAL sanitation -- unknown def ids, malformed
+## affixes, and unrecognized slot names are dropped with a warning here; the
+## LEGALITY re-check (slot match + attribute requirements) is
+## EquipmentComponent's job at apply time, a distinct gate (decision 6).
+static func _validate_equipment(section) -> Dictionary:
+    if section == null:
+        return {}
+    if not section is Dictionary:
+        push_warning("SaveValidator: equipment is not a dictionary, defaulting to empty")
+        return {}
+    var src: Dictionary = section
+    var slot_names: Array = ItemTypes.EquipSlot.keys()
+    var out := {}
+    for key in src.keys():
+        if not _is_string_key(key) or not slot_names.has(String(key)):
+            push_warning("SaveValidator: equipment slot %s is unknown, dropped" % str(key))
+            continue
+        var entry = src[key]
+        if typeof(entry) != TYPE_DICTIONARY:
+            push_warning("SaveValidator: equipment.%s entry is not a dictionary, dropped" % str(key))
+            continue
+
+        var def_id = entry.get("def_id", "")
+        if not _is_string_key(def_id) or ItemCatalog.by_id(StringName(def_id)) == null:
+            push_warning("SaveValidator: equipment.%s def_id %s does not resolve, entry dropped" % [str(key), str(def_id)])
+            continue
+
+        var rarity_raw = entry.get("rarity", ItemTypes.Rarity.COMMON)
+        var rarity: int
+        if _is_numeric(rarity_raw):
+            rarity = int(rarity_raw)
+        else:
+            push_warning("SaveValidator: equipment.%s rarity %s is not numeric, defaulting to Common" % [str(key), str(rarity_raw)])
+            rarity = ItemTypes.Rarity.COMMON
+        var clamped := clampi(rarity, ItemTypes.Rarity.COMMON, ItemTypes.Rarity.HEIRLOOM)
+        if clamped != rarity:
+            push_warning("SaveValidator: equipment.%s rarity %d out of range, clamped to %d" % [str(key), rarity, clamped])
+            rarity = clamped
+
+        out[String(key)] = {
+            "def_id": String(def_id),
+            "rarity": rarity,
+            "affixes": _validate_affixes(entry.get("affixes")),
+        }
+    return out
 
 ## Inventory is an array section (ADR-0015, M2.3): each entry whose def_id the
 ## catalog can't resolve is dropped, malformed affixes are dropped, and a

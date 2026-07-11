@@ -4,7 +4,9 @@
 [ext_resource type="Script" path="res://items/core/item_definition.gd" id="2_def"]
 [ext_resource type="Resource" path="res://items/library/rusted_sickle.tres" id="3_sickle"]
 [ext_resource type="Resource" path="res://items/library/worn_hide.tres" id="4_hide"]
+[ext_resource type="Resource" path="res://items/library/iron_ring.tres" id="5_ring"]
+[ext_resource type="Resource" path="res://items/library/plate_helm.tres" id="6_helm"]
 
 [resource]
 script = ExtResource("1_catalog")
-items = Array[ExtResource("2_def")]([ExtResource("3_sickle"), ExtResource("4_hide")])
+items = Array[ExtResource("2_def")]([ExtResource("3_sickle"), ExtResource("4_hide"), ExtResource("5_ring"), ExtResource("6_helm")])

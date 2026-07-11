@@ -287,6 +287,29 @@ text visibly distinguishes crits.
 
 **Blocked by:** M2.1 (done). `ready-for-agent`
 
+### M2.6 — Skills Window (loadout & swap) — `ready-for-agent` · brief `docs/briefs/m2-06-skills-window.md`
+
+**What to build.** A player-facing Skills Window opened with `S`: four
+Ability Slots on top, an "Available Skills" panel listing every
+player-grantable skill (new `Skill.player_grantable` flag; enemy skills like
+Bite excluded), drag-and-drop to equip/overwrite/swap, hover-✕ to unequip.
+Equipping learns the skill so the loadout survives the Save Gate; opening
+pauses the game. The project's first interface held to a real interaction-UX
+standard. Off-theme for M2 (loot), added mid-milestone because the M1 save
+system made skill swaps hard to test without editing code.
+
+**Acceptance criteria**
+- [ ] `S` opens/pauses; `S`/`Esc` closes/resumes; library lists the five
+      grantable skills (no `slime_bite`)
+- [ ] Drag equips (overwrite), slot→slot swaps, ✕ unequips, duplicates allowed;
+      HUD mirrors live
+- [ ] A window-equipped skill survives a save→reload round-trip (learned, not
+      Save-Gate-wiped)
+- [ ] Full GUT suite green
+
+**Blocked by:** Epic M1 (Save Gate). `ready-for-agent` — parallel with any M2
+story (no shared files with M2.2–M2.5).
+
 ---
 
 ## Epic M3 — Skill Splicing MVP

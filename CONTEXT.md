@@ -200,6 +200,18 @@ _Avoid_: Quality as a numeric score, rolling Heirlooms
 `ItemCatalog`, the authored `res://items/item_catalog.tres` resource listing every `ItemDefinition` under `items/library/`, and the only legal way to resolve a persisted `definition_id` back into a definition (`ItemCatalog.by_id`). The exact twin of the Skill Catalog — lazy static lookup, `push_error` on duplicate or empty ids, one completeness test against the definitions folder. Exists for the same reason: instances serialize by id, never by resource path.
 _Avoid_: Item registry, item database
 
+**Equip Slot**:
+One of the eleven body slots (`ItemTypes.EquipSlot`: `WEAPON, OFF_HAND, HELM, BODY, GLOVES, BOOTS, BELT, AMULET, RING_1, RING_2, RELIC`) an item equips INTO, owned by `EquipmentComponent`. Distinct from an item's `ItemSlot` — the ten item TYPES a definition is authored with. The two don't line up 1:1: `RING` is the one `ItemSlot` legal in either ring Equip Slot (`ItemTypes.accepts`), every other `ItemSlot` maps to exactly one Equip Slot. Persisted (M2.4) keyed by the slot's NAME, not its int, so the enum can grow without corrupting saves.
+_Avoid_: Conflating with `ItemSlot` (say "item slot"/"item type" for that one), "equipment slot" as a synonym for the item type
+
+**Equip Gate**:
+`Equipment.validate(item, slot, stats) -> EquipResult` (`components/equipment/equipment.gd`), the one legality check for equipping an item into a slot — checked in a fixed, extensible order: slot match (`ItemTypes.accepts`, else `&"wrong_slot"`), then every `attribute_requirement` met (else `&"requirements_not_met"`); oath/material/sealed-slot rules are M5 additions to the same list, never a second function. Called identically by the equip UI and by load (M2.4 decision 6) — a second copy anywhere is a review failure, the same discipline as the **Save Gate** it sits beside as a sibling gate with a distinct job: the Save Gate sanitizes a document's *shape*, the Equip Gate checks one item's *legality* against the live character.
+_Avoid_: Re-checking slot/requirement logic inline in a panel or in `SaveValidator` (which has no `StatsComponent` to check requirements against)
+
+**Equipped Item**:
+An `ItemInstance` occupying an Equip Slot on `EquipmentComponent`. Its `implicit_mods` + `rolled_affixes` become live `StatModifier`s sourced by the instance itself (`mod.source = item`) the moment it's equipped (ADR-0001) — removed in one bulk pass by `StatsComponent.remove_by_source` on unequip, never mutating the instance or a Resource (ADR-0003). Never serialized as modifiers: the character file's `"equipment"` section stores the instance shape only (`{def_id, rarity, affixes}`), and the modifiers replay from it on load, re-validated at the Equip Gate first (an item the character no longer qualifies for lands back in inventory with a `push_warning`, never silently equipped).
+_Avoid_: Serializing the applied `StatModifier`s, equipping without going through `EquipmentComponent.equip`
+
 ### World
 
 **Level**:

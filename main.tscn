@@ -8,7 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://nkgyvnse3x0t" path="res://entities/enemies/training_dummy/TrainingDummy.tscn" id="5_lquwl"]
 [ext_resource type="PackedScene" path="res://vfx/floating_combat_text/combat_text_spawner.tscn" id="6_combat_text"]
 [ext_resource type="PackedScene" path="res://ui/attributes/attributes_panel.tscn" id="7_attributes"]
-[ext_resource type="PackedScene" path="res://ui/inventory/inventory_panel.tscn" id="9_kek77"]
+[ext_resource type="PackedScene" path="res://ui/character_screen/character_screen.tscn" id="9_kek77"]
 
 [node name="Main" type="Node2D" unique_id=1234891808]
 script = ExtResource("3_main")
@@ -36,4 +36,4 @@ position = Vector2(2800, 552)
 [node name="Slime3" parent="." unique_id=1714204794 instance=ExtResource("2_272bh")]
 position = Vector2(4200, 552)
 
-[node name="InventoryPanel" parent="." unique_id=737066479 instance=ExtResource("9_kek77")]
+[node name="CharacterScreen" parent="." unique_id=737066479 instance=ExtResource("9_kek77")]

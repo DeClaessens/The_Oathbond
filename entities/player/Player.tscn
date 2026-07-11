@@ -11,6 +11,7 @@
 [ext_resource type="Script" path="res://components/inventory/inventory_component.gd" id="9_inventory"]
 [ext_resource type="Script" uid="uid://cv17uliwl1v2w" path="res://components/highlight/target_preview_component.gd" id="10_preview"]
 [ext_resource type="Script" path="res://components/attributes/attributes_component.gd" id="11_attributes"]
+[ext_resource type="Script" path="res://components/equipment/equipment_component.gd" id="12_equipment"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_eae6q"]
 size = Vector2(127, 128)
@@ -63,6 +64,9 @@ script = ExtResource("10_preview")
 
 [node name="AttributesComponent" type="Node" parent="." unique_id=2871662041]
 script = ExtResource("11_attributes")
+
+[node name="EquipmentComponent" type="Node" parent="."]
+script = ExtResource("12_equipment")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=2032033053]
 zoom = Vector2(0.8, 0.8)

@@ -242,3 +242,55 @@ func test_non_dictionary_inventory_entry_is_dropped():
     var out := SaveValidator.validate_character(data)
     assert_eq(out.inventory.size(), 1)
     assert_push_warning("inventory entry is not a dictionary")
+
+# --- equipment section (M2.4) ---
+
+func test_valid_equipment_passes_through():
+    var data := _valid_document()
+    data["equipment"] = {"BODY": _inventory_entry("worn_hide")}
+    var out := SaveValidator.validate_character(data)
+    assert_eq(out.equipment.keys(), ["BODY"])
+    assert_eq(out.equipment["BODY"].def_id, "worn_hide")
+
+func test_missing_equipment_defaults_to_empty_without_warning():
+    var out := SaveValidator.validate_character(_valid_document())
+    assert_eq(out.equipment, {})
+    assert_push_warning_count(0)
+
+func test_non_dictionary_equipment_defaults_to_empty_with_warning():
+    var data := _valid_document()
+    data["equipment"] = "not a dictionary"
+    var out := SaveValidator.validate_character(data)
+    assert_eq(out.equipment, {})
+    assert_push_warning("equipment is not a dictionary")
+
+func test_unknown_equip_slot_name_is_dropped():
+    var data := _valid_document()
+    data["equipment"] = {"NOT_A_SLOT": _inventory_entry("worn_hide")}
+    var out := SaveValidator.validate_character(data)
+    assert_eq(out.equipment, {})
+    assert_push_warning("unknown")
+
+func test_equipment_unknown_def_id_entry_is_dropped():
+    var data := _valid_document()
+    data["equipment"] = {"BODY": _inventory_entry("not_a_real_item")}
+    var out := SaveValidator.validate_character(data)
+    assert_eq(out.equipment, {})
+    assert_push_warning("does not resolve")
+
+func test_equipment_out_of_range_rarity_is_clamped():
+    var data := _valid_document()
+    data["equipment"] = {"WEAPON": _inventory_entry("rusted_sickle", 99)}
+    var out := SaveValidator.validate_character(data)
+    assert_eq(out.equipment["WEAPON"].rarity, int(ItemTypes.Rarity.HEIRLOOM))
+    assert_push_warning("out of range")
+
+func test_equipment_malformed_affix_is_dropped_but_entry_survives():
+    var data := _valid_document()
+    data["equipment"] = {"WEAPON": _inventory_entry("rusted_sickle", 1, [
+        {"stat": "dmg_ember", "op": 0, "value": 5.0},
+        {"op": 0, "value": 1.0},
+    ])}
+    var out := SaveValidator.validate_character(data)
+    assert_eq(out.equipment["WEAPON"].affixes.size(), 1)
+    assert_push_warning("malformed affix dropped")

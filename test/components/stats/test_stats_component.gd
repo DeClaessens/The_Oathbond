@@ -296,6 +296,64 @@ func test_stack_mode_emits_stat_changed_on_each_application():
     stats.add_modifier(mod)
     assert_signal_emit_count(stats, "stat_changed", 1)
 
+func test_remove_by_source_erases_only_that_sources_mods_and_emits_once_per_stat():
+    stats.base_stats = {StatKeys.MIGHT: 10.0, StatKeys.MOVE_SPEED: 100.0}
+    var source_a := RefCounted.new()
+    var source_b := RefCounted.new()
+    var a1 := StatModifier.new()
+    a1.stat = StatKeys.MIGHT
+    a1.op = StatModifier.Op.FLAT
+    a1.value = 5.0
+    a1.source = source_a
+    var a2 := StatModifier.new()
+    a2.stat = StatKeys.MOVE_SPEED
+    a2.op = StatModifier.Op.FLAT
+    a2.value = 20.0
+    a2.source = source_a
+    var a3 := StatModifier.new()
+    a3.stat = StatKeys.MOVE_SPEED
+    a3.op = StatModifier.Op.ADD_PCT
+    a3.value = 0.1
+    a3.source = source_a
+    var b1 := StatModifier.new()
+    b1.stat = StatKeys.MOVE_SPEED
+    b1.op = StatModifier.Op.FLAT
+    b1.value = 50.0
+    b1.source = source_b
+    stats.add_modifier(a1)
+    stats.add_modifier(a2)
+    stats.add_modifier(a3)
+    stats.add_modifier(b1)
+
+    watch_signals(stats)
+    stats.remove_by_source(source_a)
+
+    # Only source_b's modifier survives.
+    assert_eq(stats.get_stat(StatKeys.MOVE_SPEED), 150.0, "source_b's flat +50 must remain, source_a's must be gone")
+    assert_eq(stats.get_stat(StatKeys.MIGHT), 10.0, "source_a's +5 Might must be gone")
+    assert_eq(stats.get_stat(StatKeys.MAX_HEALTH), 20.0, "the dependent derived stat must track Might back down")
+    # One emission for might, one for its dependent max_health, one for move_speed --
+    # in that order (MIGHT is processed before MOVE_SPEED in `affected`).
+    assert_signal_emit_count(stats, "stat_changed", 3)
+    assert_signal_emitted_with_parameters(stats, "stat_changed", [StatKeys.MIGHT, 10.0], 0)
+    assert_signal_emitted_with_parameters(stats, "stat_changed", [StatKeys.MAX_HEALTH, 20.0], 1)
+    assert_signal_emitted_with_parameters(stats, "stat_changed", [StatKeys.MOVE_SPEED, 150.0], 2)
+
+func test_remove_by_source_with_no_matching_mods_is_a_silent_no_op():
+    stats.base_stats = {StatKeys.MOVE_SPEED: 100.0}
+    var mod := StatModifier.new()
+    mod.stat = StatKeys.MOVE_SPEED
+    mod.op = StatModifier.Op.FLAT
+    mod.value = 10.0
+    mod.source = RefCounted.new()
+    stats.add_modifier(mod)
+
+    watch_signals(stats)
+    stats.remove_by_source(RefCounted.new())
+
+    assert_eq(stats.get_stat(StatKeys.MOVE_SPEED), 110.0)
+    assert_signal_emit_count(stats, "stat_changed", 0)
+
 func test_stack_mode_stacks_expire_independently():
     stats.base_stats = {StatKeys.MOVE_SPEED: 100.0}
     var mod_a := _keyed_mod(0.1, 1.0)

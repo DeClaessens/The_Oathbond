@@ -1,0 +1,236 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://ui/character_screen/character_screen.gd" id="1_screen"]
+[ext_resource type="PackedScene" path="res://ui/character_screen/item_card.tscn" id="2_card"]
+
+[node name="CharacterScreen" type="CanvasLayer"]
+script = ExtResource("1_screen")
+
+[node name="Backdrop" type="Panel" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Center" type="CenterContainer" parent="Backdrop"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Window" type="PanelContainer" parent="Backdrop/Center"]
+custom_minimum_size = Vector2(1080, 560)
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="Backdrop/Center/Window"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleRow" type="HBoxContainer" parent="Backdrop/Center/Window/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Backdrop/Center/Window/VBox/TitleRow"]
+layout_mode = 2
+text = "Inventory"
+
+[node name="Spacer" type="Control" parent="Backdrop/Center/Window/VBox/TitleRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Hint" type="Label" parent="Backdrop/Center/Window/VBox/TitleRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.541, 0.576, 0.612, 1)
+text = "[I] Close"
+
+[node name="HSeparator" type="HSeparator" parent="Backdrop/Center/Window/VBox"]
+layout_mode = 2
+
+[node name="Content" type="HBoxContainer" parent="Backdrop/Center/Window/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="CharacterPanel" type="VBoxContainer" parent="Backdrop/Center/Window/VBox/Content"]
+custom_minimum_size = Vector2(340, 0)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="DollArea" type="CenterContainer" parent="Backdrop/Center/Window/VBox/Content/CharacterPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Doll" type="Control" parent="Backdrop/Center/Window/VBox/Content/CharacterPanel/DollArea"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 280)
+layout_mode = 2
+
+[node name="Torso" type="Panel" parent="Backdrop/Center/Window/VBox/Content/CharacterPanel/DollArea/Doll"]
+layout_mode = 0
+offset_left = 62.0
+offset_top = 100.0
+offset_right = 98.0
+offset_bottom = 150.0
+
+[node name="Head" type="Panel" parent="Backdrop/Center/Window/VBox/Content/CharacterPanel/DollArea/Doll"]
+layout_mode = 0
+offset_left = 65.0
+offset_top = 60.0
+offset_right = 95.0
+offset_bottom = 90.0
+
+[node name="StatusLine" type="Label" parent="Backdrop/Center/Window/VBox/Content/CharacterPanel"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.878, 0.424, 0.353, 1)
+autowrap_mode = 2
+
+[node name="StatsPanel" type="PanelContainer" parent="Backdrop/Center/Window/VBox/Content/CharacterPanel"]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="Backdrop/Center/Window/VBox/Content/CharacterPanel/StatsPanel"]
+layout_mode = 2
+
+[node name="Header" type="Label" parent="Backdrop/Center/Window/VBox/Content/CharacterPanel/StatsPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.659, 0.690, 0.722, 1)
+text = "Stats"
+
+[node name="MightRow" type="HBoxContainer" parent="Backdrop/Center/Window/VBox/Content/CharacterPanel/StatsPanel/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Backdrop/Center/Window/VBox/Content/CharacterPanel/StatsPanel/VBox/MightRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.541, 0.576, 0.612, 1)
+text = "Might"
+
+[node name="MightValue" type="Label" parent="Backdrop/Center/Window/VBox/Content/CharacterPanel/StatsPanel/VBox/MightRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "0"
+
+[node name="GraceRow" type="HBoxContainer" parent="Backdrop/Center/Window/VBox/Content/CharacterPanel/StatsPanel/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Backdrop/Center/Window/VBox/Content/CharacterPanel/StatsPanel/VBox/GraceRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.541, 0.576, 0.612, 1)
+text = "Grace"
+
+[node name="GraceValue" type="Label" parent="Backdrop/Center/Window/VBox/Content/CharacterPanel/StatsPanel/VBox/GraceRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "0"
+
+[node name="WitRow" type="HBoxContainer" parent="Backdrop/Center/Window/VBox/Content/CharacterPanel/StatsPanel/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Backdrop/Center/Window/VBox/Content/CharacterPanel/StatsPanel/VBox/WitRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.541, 0.576, 0.612, 1)
+text = "Wit"
+
+[node name="WitValue" type="Label" parent="Backdrop/Center/Window/VBox/Content/CharacterPanel/StatsPanel/VBox/WitRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "0"
+
+[node name="HSeparator" type="HSeparator" parent="Backdrop/Center/Window/VBox/Content/CharacterPanel/StatsPanel/VBox"]
+layout_mode = 2
+
+[node name="HealthRow" type="HBoxContainer" parent="Backdrop/Center/Window/VBox/Content/CharacterPanel/StatsPanel/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Backdrop/Center/Window/VBox/Content/CharacterPanel/StatsPanel/VBox/HealthRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.541, 0.576, 0.612, 1)
+text = "Health"
+
+[node name="HealthValue" type="Label" parent="Backdrop/Center/Window/VBox/Content/CharacterPanel/StatsPanel/VBox/HealthRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "0"
+
+[node name="ManaRow" type="HBoxContainer" parent="Backdrop/Center/Window/VBox/Content/CharacterPanel/StatsPanel/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Backdrop/Center/Window/VBox/Content/CharacterPanel/StatsPanel/VBox/ManaRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.541, 0.576, 0.612, 1)
+text = "Mana"
+
+[node name="ManaValue" type="Label" parent="Backdrop/Center/Window/VBox/Content/CharacterPanel/StatsPanel/VBox/ManaRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "0"
+
+[node name="VSeparator" type="VSeparator" parent="Backdrop/Center/Window/VBox/Content"]
+layout_mode = 2
+
+[node name="GridArea" type="ScrollContainer" parent="Backdrop/Center/Window/VBox/Content"]
+custom_minimum_size = Vector2(460, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Grid" type="GridContainer" parent="Backdrop/Center/Window/VBox/Content/GridArea"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 6
+columns = 6
+
+[node name="VSeparator2" type="VSeparator" parent="Backdrop/Center/Window/VBox/Content"]
+layout_mode = 2
+
+[node name="InspectPanel" type="VBoxContainer" parent="Backdrop/Center/Window/VBox/Content"]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+
+[node name="InspectEmpty" type="Label" parent="Backdrop/Center/Window/VBox/Content/InspectPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.541, 0.576, 0.612, 1)
+text = "Click an item to inspect"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="PinnedCard" type="VBoxContainer" parent="Backdrop/Center/Window/VBox/Content/InspectPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="HeaderRow" type="HBoxContainer" parent="Backdrop/Center/Window/VBox/Content/InspectPanel/PinnedCard"]
+layout_mode = 2
+
+[node name="Spacer" type="Control" parent="Backdrop/Center/Window/VBox/Content/InspectPanel/PinnedCard/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PinnedClose" type="Button" parent="Backdrop/Center/Window/VBox/Content/InspectPanel/PinnedCard/HeaderRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "✕"
+flat = true
+
+[node name="PinnedItemCard" parent="Backdrop/Center/Window/VBox/Content/InspectPanel/PinnedCard" instance=ExtResource("2_card")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Tooltip" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+
+[node name="TooltipItemCard" parent="Tooltip" instance=ExtResource("2_card")]
+unique_name_in_owner = true
+layout_mode = 2

@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" path="res://vfx/floating_combat_text/combat_text_spawner.tscn" id="6_combat_text"]
 [ext_resource type="PackedScene" path="res://ui/attributes/attributes_panel.tscn" id="7_attributes"]
 [ext_resource type="PackedScene" path="res://ui/inventory/inventory_panel.tscn" id="9_kek77"]
+[ext_resource type="PackedScene" path="res://ui/skills_window/skills_window.tscn" id="10_skills_window"]
 
 [node name="Main" type="Node2D" unique_id=1234891808]
 script = ExtResource("3_main")
@@ -37,3 +38,5 @@ position = Vector2(2800, 552)
 position = Vector2(4200, 552)
 
 [node name="InventoryPanel" parent="." unique_id=737066479 instance=ExtResource("9_kek77")]
+
+[node name="SkillsWindow" parent="." instance=ExtResource("10_skills_window")]

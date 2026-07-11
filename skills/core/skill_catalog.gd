@@ -21,6 +21,19 @@ static func by_id(id: StringName) -> Skill:
     _ensure_loaded()
     return _by_id.get(id)
 
+## Player-facing skill library for UI (e.g. the Skills Window): every catalog
+## skill with player_grantable == true, in authored catalog order. Filters the
+## view only -- slime_bite and every other skill stay listed in the catalog.
+static func grantable_skills() -> Array[Skill]:
+    var catalog: SkillCatalog = load(CATALOG_PATH)
+    var result: Array[Skill] = []
+    if catalog == null:
+        return result
+    for skill in catalog.skills:
+        if skill != null and skill.player_grantable:
+            result.append(skill)
+    return result
+
 static func _ensure_loaded() -> void:
     if _loaded:
         return

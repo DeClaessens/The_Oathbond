@@ -36,6 +36,10 @@ _Avoid_: Target type
 A Known Skill is one a character has learned and can equip. An Equipped Skill is a Known Skill currently placed in one of the character's Ability Slots. Learning and equipping are deliberately separate actions — a character can know a skill without it being equipped.
 _Avoid_: Learned skill (use Known Skill)
 
+**Grantable Skill**:
+A Skill with `player_grantable == true` -- one a player can learn and equip, surfaced in player-facing lists like the Skills Window. Enemy-only skills (e.g. Bite) set it `false`. The Skill Catalog still lists every skill regardless; `player_grantable` filters the view via `SkillCatalog.grantable_skills()`.
+_Avoid_: Unlocked skill (there is no unlock economy yet)
+
 **Global Cooldown** (GCD):
 A short, shared lockout on `AbilityComponent` that starts on any successful cast and briefly blocks every Ability Slot, not just the one used. Sets combat cadence independent of each Skill's own cooldown. A Skill can opt out via `ignores_global_cooldown`, meaning it neither respects the GCD (castable during it) nor triggers it (casting it starts nothing) — used for movement Skills like Sprint and Super Jump, which must never feel input-gated.
 _Avoid_: Cast time, shared cooldown (use Global Cooldown / GCD)
@@ -43,6 +47,10 @@ _Avoid_: Cast time, shared cooldown (use Global Cooldown / GCD)
 **Skill Bar**:
 The player's on-screen HUD that reflects their four Ability Slots — which Skills are equipped, which slots are open, and each slot's live cooldown. Read-only: it mirrors the `AbilityComponent`'s state, it does not equip or activate.
 _Avoid_: Hotbar, action bar, ability bar
+
+**Skills Window**:
+The player-facing loadout screen (`ui/skills_window/`, toggled by `S`) that reassigns the four Ability Slots by dragging grantable Skills onto them; equipping learns the Skill so it persists through the Save Gate. Pauses the game while open. Distinct from the read-only Skill Bar HUD, which only mirrors the slots.
+_Avoid_: Skill menu, inventory (that is items)
 
 ### Stats & modifiers
 
